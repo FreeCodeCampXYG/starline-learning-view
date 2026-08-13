@@ -36,6 +36,10 @@ const CATEGORY_COLORS = {
 const state = {
   repositoryPayload: null,
   notes: [],
+  projectPayload: null,
+  projects: [],
+  starredProjects: [],
+  projectFilter: "owned",
   query: "",
   category: "all",
   tags: new Set(),
@@ -74,6 +78,18 @@ async function initialize() {
     } else {
       state.notes = structuredCloneSafe(payload.notes);
     }
+    try {
+      const projectResponse = await fetch("data/github-projects.json", { cache: "no-store" });
+      if (projectResponse.ok) {
+        const projectPayload = await projectResponse.json();
+        const projectErrors = validateProjectPayload(projectPayload);
+        if (!projectErrors.length) {
+          state.projectPayload = projectPayload;
+          state.projects = structuredCloneSafe(projectPayload.projects);
+          state.starredProjects = structuredCloneSafe(projectPayload.starred || []);
+        }
+      }
+    } catch { /* 项目索引是辅助数据，失败时不阻断核心笔记目录。 */ }
     renderAll();
   } catch (error) {
     renderLoadError(error);
@@ -88,12 +104,14 @@ function cacheDom() {
     "statPublished", "statUnchecked", "statCategories", "featuredButton", "dataModeText",
     "themeDescription", "openSidebar", "closeSidebar", "sidebarScrim", "newNoteButton",
     "appearanceButton", "appearanceSidebarButton", "appearanceDialog", "closeAppearance", "continueCard", "attentionCard",
-    "navTotal", "navFeatured", "navAttention", "navDraft", "activeFilterRow",
+    "navTotal", "navFeatured", "navAttention", "navDraft", "navProjects", "activeFilterRow",
     "detailDialog", "detailContent", "closeDetail", "editorDialog", "closeEditor",
     "cancelEditor", "noteForm", "editorTitle", "noteOriginalId", "noteId", "noteTitle",
     "noteSummary", "noteUrl", "noteRepoUrl", "noteCategory", "noteTags", "noteStatus",
     "noteLinkStatus", "noteMinutes", "noteFeatured", "formError", "importButton",
-    "exportButton", "importInput", "resetDraftButton", "toast"
+    "exportButton", "importInput", "resetDraftButton", "toast",
+    "projectGrid", "projectEmpty", "projectResultCount", "projectSyncText",
+    "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectStarredCount", "commitScope"
   ].forEach((id) => { dom[id] = document.getElementById(id); });
 }
 
@@ -101,6 +119,14 @@ function bindEvents() {
   dom.searchInput.addEventListener("input", (event) => {
     state.query = event.target.value.trim().toLocaleLowerCase("zh-CN");
     renderLibrary();
+    renderProjects();
+  });
+
+  document.querySelectorAll("[data-project-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.projectFilter = button.dataset.projectFilter;
+      renderProjects();
+    });
   });
   dom.statusFilter.addEventListener("change", (event) => {
     state.status = event.target.value;
@@ -265,7 +291,74 @@ function renderAll() {
   renderCategoryTree();
   renderTagCloud();
   renderLibrary();
+  renderProjects();
   renderDataMode();
+}
+
+function renderProjects() {
+  document.querySelectorAll("[data-project-filter]").forEach((button) => {
+    const active = button.dataset.projectFilter === state.projectFilter;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  const source = state.projectFilter === "starred" ? state.starredProjects : state.projects;
+  const projects = source.filter((project) => {
+    const haystack = [project.name, project.description, project.language, ...(project.topics || [])]
+      .filter(Boolean).join(" ").toLocaleLowerCase("zh-CN");
+    return (!state.query || haystack.includes(state.query))
+      && (state.projectFilter === "starred"
+        || (state.projectFilter === "owned" && !project.fork)
+        || (state.projectFilter === "pages" && !project.fork && project.hasPages)
+        || (state.projectFilter === "forks" && project.fork));
+  });
+
+  dom.projectResultCount.textContent = String(projects.length);
+  dom.projectGrid.innerHTML = projects.map((project) => renderProjectCard(project, state.projectFilter === "starred")).join("");
+  dom.projectGrid.hidden = projects.length === 0;
+  dom.projectEmpty.hidden = projects.length !== 0;
+  if (state.projectPayload) {
+    const generatedAt = new Date(state.projectPayload.generatedAt);
+    const time = Number.isNaN(generatedAt.getTime()) ? state.projectPayload.generatedAt : new Intl.DateTimeFormat("zh-CN", {
+      month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
+    }).format(generatedAt);
+    const summary = state.projectPayload.summary || {};
+    dom.projectSyncText.textContent = `${state.projectPayload.owner} · ${summary.repositories ?? state.projects.length} 个公开仓库 · 索引更新于 ${time}`;
+    dom.projectOwnedCount.textContent = String(summary.owned ?? state.projects.filter((project) => !project.fork).length);
+    dom.projectForkCount.textContent = String(summary.forked ?? state.projects.filter((project) => project.fork).length);
+    dom.projectCommitCount.textContent = String(summary.matchedDefaultBranchCommits ?? "—");
+    dom.projectStarredCount.textContent = String(summary.starred ?? state.starredProjects.length);
+    dom.commitScope.textContent = state.projectPayload.commitScope || "提交数按 GitHub 账号身份匹配每个公开仓库默认分支统计。";
+    dom.navProjects.textContent = String(summary.repositories ?? state.projects.length);
+  } else {
+    dom.projectSyncText.textContent = "项目索引暂未载入；笔记目录仍可正常使用。";
+    [dom.projectOwnedCount, dom.projectForkCount, dom.projectCommitCount, dom.projectStarredCount].forEach((element) => { element.textContent = "—"; });
+    dom.navProjects.textContent = "—";
+  }
+}
+
+function renderProjectCard(project, starred = false) {
+  const repoUrl = safeHref(project.repoUrl);
+  const pagesUrl = project.hasPages && project.pagesUrl ? safeHref(project.pagesUrl) : "";
+  const homepage = project.homepage ? safeHref(project.homepage) : "";
+  const primaryUrl = pagesUrl || homepage || repoUrl;
+  const description = project.description || "该仓库暂未填写项目说明。";
+  const badges = (starred
+    ? [project.language, `${Number(project.stars) || 0} Stars`, "我的收藏"]
+    : [project.language, project.hasPages ? "GitHub Pages" : "源码仓库", project.fork ? "Fork" : "自建"]).filter(Boolean);
+  const commitCopy = starred ? `社区 ${Number(project.stars) || 0} Stars` : (Number.isInteger(project.commitCount) ? `本人 ${project.commitCount} 次提交` : "本人提交数未知");
+  const upstream = project.upstream?.repoUrl ? `<span class="project-upstream">上游：<a href="${escapeAttr(safeHref(project.upstream.repoUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(project.upstream.fullName || "查看来源")}</a></span>` : "";
+  return `<article class="project-card">
+    <div class="project-card-top"><span class="project-repo-mark" aria-hidden="true">⌘</span><span>${escapeHtml(project.fullName)}</span></div>
+    <h3>${escapeHtml(project.name)}</h3>
+    <p>${escapeHtml(description)}</p>
+    <div class="project-badges">${badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</div>
+    ${upstream}
+    <footer><span>${escapeHtml(commitCopy)} · 更新 ${formatTimestampDate(project.updatedAt)}</span><div>
+      ${repoUrl ? `<a href="${escapeAttr(repoUrl)}" target="_blank" rel="noopener noreferrer">源码</a>` : ""}
+      ${primaryUrl && primaryUrl !== repoUrl ? `<a class="project-open" href="${escapeAttr(primaryUrl)}" target="_blank" rel="noopener noreferrer">${pagesUrl ? "打开网站" : "访问主页"} ↗</a>` : ""}
+    </div></footer>
+  </article>`;
 }
 
 function renderStats() {
@@ -683,6 +776,24 @@ function validatePayload(payload) {
   return errors;
 }
 
+function validateProjectPayload(payload) {
+  if (!payload || typeof payload !== "object" || !Array.isArray(payload.projects)) return ["项目索引必须包含 projects 数组"];
+  const errors = [];
+  payload.projects.forEach((project, index) => {
+    if (!project || typeof project !== "object") {
+      errors.push(`projects[${index}] 必须是对象`);
+      return;
+    }
+    ["name", "fullName", "repoUrl", "hasPages", "fork", "commitCount", "updatedAt"].forEach((key) => {
+      if (!(key in project)) errors.push(`projects[${index}] 缺少 ${key}`);
+    });
+    if (!safeHref(project.repoUrl || "")) errors.push(`projects[${index}].repoUrl 无效`);
+    if (project.pagesUrl && !safeHref(project.pagesUrl)) errors.push(`projects[${index}].pagesUrl 无效`);
+  });
+  if (!Array.isArray(payload.starred)) errors.push("项目索引缺少 starred 数组");
+  return errors;
+}
+
 function safeHref(value) {
   if (typeof value !== "string" || !value.trim()) return "";
   const trimmed = value.trim();
@@ -752,6 +863,13 @@ function animateNumber(element, target) {
 function formatDate(value) {
   if (!value) return "—";
   const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
+
+function formatTimestampDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
 }

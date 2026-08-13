@@ -2430,6 +2430,213 @@ body[data-theme="atelier"]::before {
   transform: translateY(-2px);
 }
 
+.project-section {
+  padding: 42px 0 64px;
+  scroll-margin-top: 86px;
+}
+
+.smart-nav-link {
+  text-decoration: none;
+}
+
+.project-head p {
+  margin: 7px 0 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.project-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.project-summary article {
+  display: grid;
+  gap: 3px;
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-strong);
+}
+
+.project-summary span,
+.project-summary small {
+  color: var(--ink-muted);
+  font-size: 10px;
+}
+
+.project-summary strong {
+  font-size: 23px;
+  font-weight: 680;
+}
+
+.project-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 18px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-strong);
+}
+
+.project-profile-link {
+  margin-left: auto;
+  padding: 8px 10px;
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.project-profile-link:hover {
+  color: var(--accent-ink);
+}
+
+.commit-scope {
+  margin: 8px 4px 0;
+  color: var(--ink-faint);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.project-card {
+  display: flex;
+  min-width: 0;
+  min-height: 220px;
+  padding: 18px;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-strong);
+}
+
+.project-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+}
+
+.project-card-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--ink-faint);
+  font-size: 10px;
+}
+
+.project-card-top span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-repo-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--accent-ink);
+  border-radius: 7px;
+  background: var(--accent-soft);
+}
+
+.project-card h3 {
+  margin: 16px 0 8px;
+  overflow-wrap: anywhere;
+  font-size: 17px;
+  letter-spacing: -.02em;
+}
+
+.project-card > p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.project-badges {
+  display: flex;
+  gap: 5px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.project-badges span {
+  padding: 4px 7px;
+  color: var(--ink-muted);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.project-upstream {
+  margin-top: 10px;
+  color: var(--ink-faint);
+  font-size: 10px;
+}
+
+.project-upstream a {
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.project-card footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 18px;
+  color: var(--ink-faint);
+  font-size: 10px;
+}
+
+.project-card footer div {
+  display: flex;
+  gap: 10px;
+}
+
+.project-card footer a {
+  color: var(--ink-muted);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.project-card footer .project-open {
+  color: var(--accent-ink);
+}
+
+.project-empty {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 30px;
+  color: var(--ink-muted);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.project-empty[hidden] {
+  display: none;
+}
+
 .notes-grid.is-list .note-card {
   grid-template-columns: minmax(220px, .85fr) minmax(280px, 1.35fr) minmax(180px, .75fr) auto;
   gap: 7px 22px;
@@ -2462,6 +2669,9 @@ body[data-theme="atelier"]::before {
 }
 
 @media (max-width: 1080px) {
+  .project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .focus-row {
     grid-template-columns: 1fr;
   }
@@ -2492,6 +2702,25 @@ body[data-theme="atelier"]::before {
 }
 
 @media (max-width: 720px) {
+  .project-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  .project-toolbar {
+    align-items: stretch;
+    overflow-x: auto;
+  }
+
+  .project-toolbar > * {
+    flex: 0 0 auto;
+  }
+
+  .project-profile-link {
+    margin-left: 8px;
+  }
+
+  .project-grid {
+    grid-template-columns: 1fr;
+  }
   .page-heading {
     grid-template-columns: 1fr auto;
     gap: 12px;

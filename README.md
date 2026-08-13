@@ -2,6 +2,8 @@
 
 一个不依赖构建工具、可直接部署到 GitHub Pages 的学习笔记网页目录。正式数据来自 `data/notes.json`；浏览器编辑只生成本地草稿，不会也不应该直接持有 GitHub Token。
 
+GitHub Actions 会读取 `FreeCodeCampXYG` 的公开仓库并生成 `data/github-projects.json`。页面默认展示全部自建项目，并可切换到已部署 Pages、Fork 项目和我的 Star；私有仓库不会进入公开索引。
+
 1.1 版采用任务优先首页：快捷入口、最近更新、维护提醒和默认列表视图直接服务日常工作；五套主题、导入导出和高级筛选通过设置与菜单渐进式披露。
 
 ## 本地预览
@@ -31,6 +33,21 @@ python -m http.server 8000
 3. 审核分类、URL 与 Git diff。
 4. 用导出文件替换仓库中的 `data/notes.json`。
 5. 通过分支和 PR 合并到 `main`，让 GitHub Actions 自动验证并部署。
+
+## GitHub 项目自动发现
+
+- 每天北京时间约 10:20 自动扫描一次公开仓库；GitHub 可能有少量排队延迟。
+- 推送到 `main` 或在 Actions 手动运行工作流时也会立即刷新。
+- 索引在构建过程中生成并直接进入 Pages artifact，不会每天产生 Git 提交。
+- 前端不保存 GitHub Token；Actions 只使用仓库内置的短期 `GITHUB_TOKEN` 读取公开数据。
+- 默认页面展示全部非 Fork 自建项目；筛选器可分别查看已启用 Pages、Fork 项目和账号公开收藏的 Star。
+- “本人提交”按 GitHub 账号身份匹配每个公开仓库默认分支统计，不包含其他分支、未推送提交或使用未绑定邮箱的历史。
+
+本地刷新命令：
+
+```powershell
+python scripts\sync_github_projects.py --owner FreeCodeCampXYG --output data\github-projects.json
+```
 
 必需字段：`id`、`title`、`summary`、`url`、`categoryPath`、`tags`、`status`、`linkStatus`、`updatedAt`。
 

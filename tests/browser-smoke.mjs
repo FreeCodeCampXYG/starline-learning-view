@@ -1,4 +1,12 @@
 const DEBUG_ENDPOINT = "http://127.0.0.1:9333/json";
+const githubPayload = await fetch("http://127.0.0.1:8765/data/github-projects.json").then((response) => response.json());
+const expectedGitHub = {
+  owned: githubPayload.projects.filter((project) => !project.fork).length,
+  forks: githubPayload.projects.filter((project) => project.fork).length,
+  pages: githubPayload.projects.filter((project) => !project.fork && project.hasPages).length,
+  commits: githubPayload.projects.reduce((total, project) => total + (Number.isInteger(project.commitCount) ? project.commitCount : 0), 0),
+  starred: githubPayload.starred.length
+};
 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -70,6 +78,27 @@ assert(usability.smartViews === 4, "快捷入口数量错误");
 assert(usability.focusCards === 2, "最近更新与维护提醒未渲染");
 assert(usability.defaultList, "文本型笔记应默认使用列表视图");
 assert(usability.exactTotal === "10", "统计数字应立即显示真实值");
+
+const githubOverview = await evaluate(`({
+  owned: document.querySelector('#projectOwnedCount').textContent.trim(),
+  forks: document.querySelector('#projectForkCount').textContent.trim(),
+  commits: document.querySelector('#projectCommitCount').textContent.trim(),
+  starred: document.querySelector('#projectStarredCount').textContent.trim(),
+  defaultCards: document.querySelectorAll('.project-card').length
+})`);
+assert(githubOverview.owned === String(expectedGitHub.owned), `自建项目统计错误：${githubOverview.owned}`);
+assert(githubOverview.forks === String(expectedGitHub.forks), `Fork 项目统计错误：${githubOverview.forks}`);
+assert(githubOverview.commits === String(expectedGitHub.commits), `本人提交统计错误：${githubOverview.commits}`);
+assert(githubOverview.starred === String(expectedGitHub.starred), `Star 统计错误：${githubOverview.starred}`);
+assert(githubOverview.defaultCards === expectedGitHub.owned, "默认应展示全部自建项目");
+
+await evaluate("document.querySelector('[data-project-filter=\"pages\"]').click(); true");
+assert(await evaluate("document.querySelectorAll('.project-card').length") === expectedGitHub.pages, "Pages 项目筛选未生效");
+await evaluate("document.querySelector('[data-project-filter=\"forks\"]').click(); true");
+assert(await evaluate("document.querySelectorAll('.project-card').length") === expectedGitHub.forks, "Fork 项目筛选未生效");
+await evaluate("document.querySelector('[data-project-filter=\"starred\"]').click(); true");
+assert(await evaluate("document.querySelectorAll('.project-card').length") === expectedGitHub.starred, "Star 项目筛选未生效");
+await evaluate("document.querySelector('[data-project-filter=\"owned\"]').click(); true");
 
 await evaluate("document.querySelector('[data-category=\"AI/Skill\\ 创建\"]').click(); true");
 await delay(50);
@@ -147,6 +176,8 @@ console.log(JSON.stringify({
   checks: [
     "data rendering",
     "task-first home hierarchy",
+    "GitHub owned/fork/commit/star overview",
+    "GitHub project scope filters",
     "progressive appearance settings",
     "nested category filter",
     "full-text search",

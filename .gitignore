@@ -1,2 +1,4 @@
 .visual-checks/
 .research-screens/
+__pycache__/
+*.py[cod]

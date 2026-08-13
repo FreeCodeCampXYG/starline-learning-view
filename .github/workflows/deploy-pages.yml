@@ -3,6 +3,9 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    # GitHub 使用 UTC；北京时间每天约 10:20 自动刷新公开项目索引。
+    - cron: "20 2 * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,6 +26,11 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v6
 
+      - name: Refresh public GitHub project index
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/sync_github_projects.py --owner FreeCodeCampXYG --output data/github-projects.json
+
       - name: Validate static site
         shell: bash
         run: |
@@ -31,8 +39,11 @@ jobs:
           test -f styles.css
           test -f app.js
           test -f data/notes.json
+          test -f data/github-projects.json
           node --check app.js
           python -m json.tool data/notes.json > /dev/null
+          python -m json.tool data/github-projects.json > /dev/null
+          python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Build Pages artifact
         shell: bash
@@ -41,6 +52,7 @@ jobs:
           mkdir -p _site/data
           cp index.html styles.css app.js _site/
           cp data/notes.json _site/data/
+          cp data/github-projects.json _site/data/
           touch _site/.nojekyll
 
       - name: Upload Pages artifact

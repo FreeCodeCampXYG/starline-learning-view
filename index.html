@@ -53,6 +53,7 @@
         <button class="smart-nav-item" type="button" data-smart-view="featured"><span class="smart-icon" aria-hidden="true">◇</span><span>精选内容</span><b id="navFeatured">0</b></button>
         <button class="smart-nav-item" type="button" data-smart-view="attention"><span class="smart-icon" aria-hidden="true">!</span><span>需要处理</span><b id="navAttention">0</b></button>
         <button class="smart-nav-item" type="button" data-smart-view="draft"><span class="smart-icon" aria-hidden="true">○</span><span>本地草稿</span><b id="navDraft">0</b></button>
+        <a class="smart-nav-item smart-nav-link" href="#projectHeading"><span class="smart-icon" aria-hidden="true">⌘</span><span>GitHub 项目</span><b id="navProjects">0</b></a>
       </nav>
 
       <nav class="side-section" aria-labelledby="categoryHeading">
@@ -148,6 +149,40 @@
           <h3>没有匹配的笔记</h3>
           <p>试试清除筛选条件，或创建一篇新的本地草稿。</p>
           <button class="button button-secondary" id="emptyResetButton" type="button">清除筛选</button>
+        </div>
+      </section>
+
+      <section class="project-section" aria-labelledby="projectHeading">
+        <div class="library-head project-head">
+          <div>
+            <span class="eyebrow">GitHub 自动发现</span>
+            <h2 id="projectHeading">公开项目</h2>
+            <p id="projectSyncText">正在读取 Actions 生成的项目索引…</p>
+          </div>
+          <div class="result-meta"><strong id="projectResultCount">0</strong><span>个项目</span></div>
+        </div>
+
+        <div class="project-summary" aria-label="GitHub 公开项目概览">
+          <article><span>自建项目</span><strong id="projectOwnedCount">0</strong><small>非 Fork 仓库</small></article>
+          <article><span>Fork 项目</span><strong id="projectForkCount">0</strong><small>保留上游来源</small></article>
+          <article><span>本人提交</span><strong id="projectCommitCount">0</strong><small>默认分支匹配</small></article>
+          <article><span>我的 Star</span><strong id="projectStarredCount">0</strong><small>公开收藏</small></article>
+        </div>
+
+        <div class="project-toolbar" role="group" aria-label="GitHub 项目范围">
+          <button class="quick-filter is-active" type="button" data-project-filter="owned">自建项目</button>
+          <button class="quick-filter" type="button" data-project-filter="pages">已部署 Pages</button>
+          <button class="quick-filter" type="button" data-project-filter="forks">Fork 项目</button>
+          <button class="quick-filter" type="button" data-project-filter="starred">我的 Star</button>
+          <a class="project-profile-link" href="https://github.com/FreeCodeCampXYG?tab=repositories" target="_blank" rel="noopener noreferrer">GitHub 全部仓库 ↗</a>
+        </div>
+
+        <p class="commit-scope" id="commitScope">提交数正在读取；统计口径为 GitHub 账号身份匹配的公开仓库默认分支。</p>
+
+        <div class="project-grid" id="projectGrid" aria-live="polite"></div>
+        <div class="project-empty" id="projectEmpty" hidden>
+          <strong>没有匹配的公开项目</strong>
+          <span>可切换项目范围，或清除顶部搜索词。</span>
         </div>
       </section>
     </main>
