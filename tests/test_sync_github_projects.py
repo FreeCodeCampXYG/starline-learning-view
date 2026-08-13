@@ -82,6 +82,21 @@ class GitHubProjectIndexTests(unittest.TestCase):
         link = '<https://api.github.com/repositories/1/commits?per_page=1&page=7>; rel="last"'
         self.assertEqual(MODULE.last_page_from_link(link), 7)
 
+    def test_hidden_repository_is_excluded_by_name_or_full_name(self) -> None:
+        repositories = [
+            {"name": "public-note", "full_name": "Starline/public-note"},
+            {"name": "old-personal-page", "full_name": "Starline/old-personal-page"},
+            {"name": "private-memory", "full_name": "Starline/private-memory"},
+        ]
+        excluded = MODULE.parse_excluded_repositories(
+            "old-personal-page, STARLINE/private-memory\n"
+        )
+
+        visible, excluded_count = MODULE.filter_excluded_repositories(repositories, excluded)
+
+        self.assertEqual([repository["name"] for repository in visible], ["public-note"])
+        self.assertEqual(excluded_count, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

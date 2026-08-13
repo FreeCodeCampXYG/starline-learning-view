@@ -17,6 +17,29 @@ from typing import Any
 API_ROOT = "https://api.github.com"
 
 
+def parse_excluded_repositories(value: str) -> frozenset[str]:
+    """解析逗号或换行分隔的隐藏仓库名，不保留空项。"""
+    normalized = value.replace("\r", "\n").replace(",", "\n").replace(";", "\n")
+    return frozenset(item.strip().casefold() for item in normalized.splitlines() if item.strip())
+
+
+def filter_excluded_repositories(
+    repositories: list[dict[str, Any]],
+    excluded: frozenset[str],
+) -> tuple[list[dict[str, Any]], int]:
+    """按仓库名或 owner/name 排除不应进入公开索引的项目。"""
+    visible: list[dict[str, Any]] = []
+    excluded_count = 0
+    for repository in repositories:
+        name = str(repository.get("name") or "").strip().casefold()
+        full_name = str(repository.get("full_name") or "").strip().casefold()
+        if name in excluded or full_name in excluded:
+            excluded_count += 1
+            continue
+        visible.append(repository)
+    return visible, excluded_count
+
+
 def github_request_with_headers(url: str, token: str | None = None) -> tuple[Any, dict[str, str]]:
     """调用 GitHub REST API，同时返回分页统计所需的响应头。"""
     headers = {
@@ -207,6 +230,7 @@ def build_payload(
     commit_counts: dict[str, int | None] | None = None,
     upstreams: dict[str, dict[str, str] | None] | None = None,
     starred_repositories: list[dict[str, Any]] | None = None,
+    excluded_repositories: int = 0,
 ) -> dict[str, Any]:
     """构造可被前端直接读取的稳定项目索引。"""
     commit_counts = commit_counts or {}
@@ -236,6 +260,7 @@ def build_payload(
             "matchedDefaultBranchCommits": known_commit_total,
             "unknownCommitRepositories": unknown_commit_repositories,
             "starred": len(starred),
+            "excludedRepositories": excluded_repositories,
         },
         "projects": projects,
         "starred": starred,
@@ -252,7 +277,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    repositories = list_public_repositories(args.owner, token)
+    excluded = parse_excluded_repositories(os.environ.get("HIDDEN_GITHUB_REPOSITORIES", ""))
+    repositories, excluded_count = filter_excluded_repositories(
+        list_public_repositories(args.owner, token),
+        excluded,
+    )
     commit_counts = {
         str(repository.get("name") or ""): default_branch_commit_count(args.owner, str(repository.get("name") or ""), token)
         for repository in repositories
@@ -261,13 +290,17 @@ def main() -> None:
         str(repository.get("name") or ""): fork_upstream(repository, token)
         for repository in repositories if repository.get("fork")
     }
-    starred_repositories = list_starred_repositories(args.owner, token)
+    starred_repositories, _ = filter_excluded_repositories(
+        list_starred_repositories(args.owner, token),
+        excluded,
+    )
     payload = build_payload(
         repositories,
         args.owner,
         commit_counts=commit_counts,
         upstreams=upstreams,
         starred_repositories=starred_repositories,
+        excluded_repositories=excluded_count,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

@@ -43,6 +43,7 @@ python -m http.server 8000
 - 默认页面展示全部非 Fork 自建项目；筛选器可分别查看已启用 Pages、Fork 项目和账号公开收藏的 Star。
 - Pages 入口固定按 `https://<账号>.github.io/<仓库名>/` 生成，卡片会同时显示目标路径，避免被仓库 `homepage` 字段带到无关页面。
 - 项目介绍优先使用 GitHub Description；尚未填写时只生成基于 Fork、Pages 和主要语言等公开事实的兜底说明。
+- 不应公开展示的旧项目通过仓库 Actions 变量 `HIDDEN_GITHUB_REPOSITORIES` 排除；支持逗号、分号或换行分隔，隐藏名单不会写入 Pages 数据文件。
 - “本人提交”按 GitHub 账号身份匹配每个公开仓库默认分支统计，不包含其他分支、未推送提交或使用未绑定邮箱的历史。
 
 本地刷新命令：

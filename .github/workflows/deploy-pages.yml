@@ -29,6 +29,7 @@ jobs:
       - name: Refresh public GitHub project index
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          HIDDEN_GITHUB_REPOSITORIES: ${{ vars.HIDDEN_GITHUB_REPOSITORIES }}
         run: python scripts/sync_github_projects.py --owner FreeCodeCampXYG --output data/github-projects.json
 
       - name: Validate static site

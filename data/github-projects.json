@@ -1,17 +1,18 @@
 {
   "schemaVersion": "1.0.0",
   "owner": "FreeCodeCampXYG",
-  "generatedAt": "2026-08-13T09:36:43Z",
+  "generatedAt": "2026-08-13T10:14:58Z",
   "source": "https://api.github.com/users/FreeCodeCampXYG/repos",
   "commitScope": "按 GitHub 账号身份匹配每个公开仓库默认分支上的提交；不含其他分支、未推送提交或未绑定身份的邮箱提交。",
   "summary": {
-    "repositories": 25,
-    "owned": 12,
+    "repositories": 24,
+    "owned": 11,
     "forked": 13,
-    "pages": 6,
-    "matchedDefaultBranchCommits": 48,
+    "pages": 5,
+    "matchedDefaultBranchCommits": 40,
     "unknownCommitRepositories": 0,
-    "starred": 31
+    "starred": 31,
+    "excludedRepositories": 1
   },
   "projects": [
     {
@@ -34,8 +35,8 @@
       "commitCount": 0,
       "commitScope": "GitHub 账号身份匹配的默认分支提交",
       "upstream": null,
-      "updatedAt": "2026-08-13T09:24:52Z",
-      "pushedAt": "2026-08-13T09:05:13Z"
+      "updatedAt": "2026-08-13T09:41:39Z",
+      "pushedAt": "2026-08-13T09:40:58Z"
     },
     {
       "id": 1330124054,
@@ -534,29 +535,6 @@
       "pushedAt": "2026-03-27T09:16:21Z"
     },
     {
-      "id": 1134629904,
-      "name": "brithday2026",
-      "fullName": "FreeCodeCampXYG/brithday2026",
-      "description": "已通过 GitHub Pages 发布的 JavaScript 项目，可直接在线查看。",
-      "descriptionSource": "generated-fallback",
-      "repoUrl": "https://github.com/FreeCodeCampXYG/brithday2026",
-      "pagesUrl": "https://freecodecampxyg.github.io/brithday2026/",
-      "hasPages": true,
-      "homepage": "https://brithday2026.vercel.app",
-      "language": "JavaScript",
-      "topics": [],
-      "fork": false,
-      "archived": false,
-      "stars": 1,
-      "forks": 0,
-      "defaultBranch": "main",
-      "commitCount": 8,
-      "commitScope": "GitHub 账号身份匹配的默认分支提交",
-      "upstream": null,
-      "updatedAt": "2026-03-19T14:27:00Z",
-      "pushedAt": "2026-03-19T14:24:55Z"
-    },
-    {
       "id": 1173098912,
       "name": "oh-my-writing-skill",
       "fullName": "FreeCodeCampXYG/oh-my-writing-skill",
@@ -631,59 +609,22 @@
   ],
   "starred": [
     {
-      "id": 651517185,
-      "name": "MediaCrawler",
-      "fullName": "NanmiCoder/MediaCrawler",
-      "description": "小红书笔记 | 评论爬虫、抖音视频 | 评论爬虫、快手视频 | 评论爬虫、B 站视频 ｜ 评论爬虫、微博帖子 ｜ 评论爬虫、百度贴吧帖子 ｜ 百度贴吧评论回复爬虫  | 知乎问答文章｜评论爬虫",
+      "id": 104337773,
+      "name": "chinese-independent-developer",
+      "fullName": "1c7/chinese-independent-developer",
+      "description": "👩🏿‍💻👨🏾‍💻👩🏼‍💻👨🏽‍💻👩🏻‍💻中国独立开发者项目列表 -- 分享大家都在做什么",
       "descriptionSource": "github",
-      "repoUrl": "https://github.com/NanmiCoder/MediaCrawler",
-      "homepage": "https://nanmicoder.github.io/MediaCrawler/",
+      "repoUrl": "https://github.com/1c7/chinese-independent-developer",
+      "homepage": null,
       "language": "Python",
-      "topics": [],
-      "stars": 62249,
-      "forks": 12159,
-      "updatedAt": "2026-08-13T09:33:41Z"
-    },
-    {
-      "id": 1230751102,
-      "name": "CodexPlusPlus",
-      "fullName": "BigPizzaV3/CodexPlusPlus",
-      "description": "An enhanced tool for CodexApp, striving to make Codex better to use and more comfortable 一个CodexApp的增强工具，努力让Codex变得更好用更舒服",
-      "descriptionSource": "github",
-      "repoUrl": "https://github.com/BigPizzaV3/CodexPlusPlus",
-      "homepage": "https://codexpp.cc/",
-      "language": "Rust",
-      "topics": [],
-      "stars": 28795,
-      "forks": 1824,
-      "updatedAt": "2026-08-13T09:31:43Z"
-    },
-    {
-      "id": 1224172037,
-      "name": "dbx",
-      "fullName": "t8y2/dbx",
-      "description": "20 MB lightweight cross-platform database client for 70+ databases, including MySQL, PostgreSQL, SQLite, Redis, MongoDB, DuckDB, SQL Server, and Dameng. Built-in AI, MCP Server, CLI, desktop and Docker. | 轻量级跨平台数据库管理工具，支持 MySQL、PostgreSQL、SQLite、Redis、MongoDB、达梦等 70+ 数据库，提供桌面端、Docker、CLI、内置 AI 助手和 MCP Server。",
-      "descriptionSource": "github",
-      "repoUrl": "https://github.com/t8y2/dbx",
-      "homepage": "https://dbxio.com",
-      "language": "Rust",
       "topics": [
-        "ai",
-        "cli",
-        "clickhouse",
-        "database",
-        "database-client",
-        "database-management",
-        "docker",
-        "gui",
-        "mcp",
-        "mongodb",
-        "mysql",
-        "postgresql"
+        "china",
+        "indie",
+        "indie-developer"
       ],
-      "stars": 14407,
-      "forks": 1476,
-      "updatedAt": "2026-08-13T09:31:37Z"
+      "stars": 60772,
+      "forks": 5295,
+      "updatedAt": "2026-08-13T10:14:19Z"
     },
     {
       "id": 1031912724,
@@ -708,9 +649,37 @@
         "openclaw",
         "openclaw-ui"
       ],
-      "stars": 126907,
+      "stars": 126920,
       "forks": 8664,
-      "updatedAt": "2026-08-13T09:31:00Z"
+      "updatedAt": "2026-08-13T10:14:07Z"
+    },
+    {
+      "id": 651517185,
+      "name": "MediaCrawler",
+      "fullName": "NanmiCoder/MediaCrawler",
+      "description": "小红书笔记 | 评论爬虫、抖音视频 | 评论爬虫、快手视频 | 评论爬虫、B 站视频 ｜ 评论爬虫、微博帖子 ｜ 评论爬虫、百度贴吧帖子 ｜ 百度贴吧评论回复爬虫  | 知乎问答文章｜评论爬虫",
+      "descriptionSource": "github",
+      "repoUrl": "https://github.com/NanmiCoder/MediaCrawler",
+      "homepage": "https://nanmicoder.github.io/MediaCrawler/",
+      "language": "Python",
+      "topics": [],
+      "stars": 62267,
+      "forks": 12160,
+      "updatedAt": "2026-08-13T10:13:40Z"
+    },
+    {
+      "id": 1230751102,
+      "name": "CodexPlusPlus",
+      "fullName": "BigPizzaV3/CodexPlusPlus",
+      "description": "An enhanced tool for CodexApp, striving to make Codex better to use and more comfortable 一个CodexApp的增强工具，努力让Codex变得更好用更舒服",
+      "descriptionSource": "github",
+      "repoUrl": "https://github.com/BigPizzaV3/CodexPlusPlus",
+      "homepage": "https://codexpp.cc/",
+      "language": "Rust",
+      "topics": [],
+      "stars": 28796,
+      "forks": 1824,
+      "updatedAt": "2026-08-13T10:12:25Z"
     },
     {
       "id": 307260205,
@@ -730,27 +699,36 @@
         "youtube-downloader",
         "yt-dlp"
       ],
-      "stars": 184177,
-      "forks": 15860,
-      "updatedAt": "2026-08-13T09:22:32Z"
+      "stars": 184182,
+      "forks": 15861,
+      "updatedAt": "2026-08-13T10:08:33Z"
     },
     {
-      "id": 104337773,
-      "name": "chinese-independent-developer",
-      "fullName": "1c7/chinese-independent-developer",
-      "description": "👩🏿‍💻👨🏾‍💻👩🏼‍💻👨🏽‍💻👩🏻‍💻中国独立开发者项目列表 -- 分享大家都在做什么",
+      "id": 1224172037,
+      "name": "dbx",
+      "fullName": "t8y2/dbx",
+      "description": "20 MB lightweight cross-platform database client for 70+ databases, including MySQL, PostgreSQL, SQLite, Redis, MongoDB, DuckDB, SQL Server, and Dameng. Built-in AI, MCP Server, CLI, desktop and Docker. | 轻量级跨平台数据库管理工具，支持 MySQL、PostgreSQL、SQLite、Redis、MongoDB、达梦等 70+ 数据库，提供桌面端、Docker、CLI、内置 AI 助手和 MCP Server。",
       "descriptionSource": "github",
-      "repoUrl": "https://github.com/1c7/chinese-independent-developer",
-      "homepage": null,
-      "language": "Python",
+      "repoUrl": "https://github.com/t8y2/dbx",
+      "homepage": "https://dbxio.com",
+      "language": "Rust",
       "topics": [
-        "china",
-        "indie",
-        "indie-developer"
+        "ai",
+        "cli",
+        "clickhouse",
+        "database",
+        "database-client",
+        "database-management",
+        "docker",
+        "gui",
+        "mcp",
+        "mongodb",
+        "mysql",
+        "postgresql"
       ],
-      "stars": 60770,
-      "forks": 5295,
-      "updatedAt": "2026-08-13T09:10:47Z"
+      "stars": 14412,
+      "forks": 1477,
+      "updatedAt": "2026-08-13T10:03:27Z"
     },
     {
       "id": 326610757,
@@ -775,29 +753,9 @@
         "rapidocr",
         "tensorrt"
       ],
-      "stars": 7477,
+      "stars": 7478,
       "forks": 698,
-      "updatedAt": "2026-08-13T09:10:39Z"
-    },
-    {
-      "id": 1078317722,
-      "name": "echotrace",
-      "fullName": "ycccccccy/echotrace",
-      "description": "EchoTrace 是一个本地、安全的微信聊天记录导出、分析与年度报告生成工具 | EchoTrace is a local, secure tool for exporting, analyzing, and generating annual reports of WeChat chat records",
-      "descriptionSource": "github",
-      "repoUrl": "https://github.com/ycccccccy/echotrace",
-      "homepage": null,
-      "language": null,
-      "topics": [
-        "annual-reports",
-        "chat-history",
-        "data-analysis",
-        "data-visualization",
-        "wechat"
-      ],
-      "stars": 3753,
-      "forks": 676,
-      "updatedAt": "2026-08-13T09:02:34Z"
+      "updatedAt": "2026-08-13T09:46:47Z"
     },
     {
       "id": 1202599845,
@@ -819,9 +777,29 @@
         "skills",
         "vibe-coding"
       ],
-      "stars": 19629,
+      "stars": 19631,
       "forks": 2140,
-      "updatedAt": "2026-08-13T08:56:03Z"
+      "updatedAt": "2026-08-13T09:45:28Z"
+    },
+    {
+      "id": 1078317722,
+      "name": "echotrace",
+      "fullName": "ycccccccy/echotrace",
+      "description": "EchoTrace 是一个本地、安全的微信聊天记录导出、分析与年度报告生成工具 | EchoTrace is a local, secure tool for exporting, analyzing, and generating annual reports of WeChat chat records",
+      "descriptionSource": "github",
+      "repoUrl": "https://github.com/ycccccccy/echotrace",
+      "homepage": null,
+      "language": null,
+      "topics": [
+        "annual-reports",
+        "chat-history",
+        "data-analysis",
+        "data-visualization",
+        "wechat"
+      ],
+      "stars": 3753,
+      "forks": 676,
+      "updatedAt": "2026-08-13T09:02:34Z"
     },
     {
       "id": 1214567634,
