@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="用于管理 GitHub Pages 学习笔记网页的静态知识目录。">
+  <title>墨卷 · 学习笔记管理台</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="atelier">
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="topbar">
+    <div class="brand" aria-label="墨卷学习笔记管理台">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div>
+        <strong>墨卷</strong>
+        <span>NOTE ATLAS</span>
+      </div>
+    </div>
+
+    <label class="global-search" for="searchInput">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+      <input id="searchInput" type="search" placeholder="搜索标题、摘要、标签…" autocomplete="off">
+      <kbd>/</kbd>
+    </label>
+
+    <div class="top-actions">
+      <button class="button button-quiet mobile-menu" id="openSidebar" type="button" aria-label="打开分类导航">分类</button>
+      <button class="button button-quiet appearance-button" id="appearanceButton" type="button" aria-label="打开外观设置">外观</button>
+      <details class="action-menu">
+        <summary class="button button-quiet" aria-label="打开更多操作">•••</summary>
+        <div class="action-menu-panel">
+          <button id="importButton" type="button"><span>导入 JSON</span><small>载入已有目录</small></button>
+          <button id="exportButton" type="button"><span>导出 JSON</span><small>交给 Git / PR 发布</small></button>
+          <a href="https://github.com/FreeCodeCampXYG" target="_blank" rel="noopener noreferrer"><span>访问 GitHub</span><small>查看公开仓库 ↗</small></a>
+        </div>
+      </details>
+      <button class="button button-primary" id="newNoteButton" type="button"><span aria-hidden="true">＋</span> 新建笔记</button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="笔记分类与标签">
+      <div class="sidebar-mobile-head">
+        <strong>浏览目录</strong>
+        <button class="icon-button" id="closeSidebar" type="button" aria-label="关闭分类导航">×</button>
+      </div>
+
+      <nav class="side-section smart-nav" aria-labelledby="smartHeading">
+        <div class="section-label"><span id="smartHeading">快捷入口</span></div>
+        <button class="smart-nav-item is-active" type="button" data-smart-view="all"><span class="smart-icon" aria-hidden="true">⌂</span><span>全部笔记</span><b id="navTotal">0</b></button>
+        <button class="smart-nav-item" type="button" data-smart-view="featured"><span class="smart-icon" aria-hidden="true">◇</span><span>精选内容</span><b id="navFeatured">0</b></button>
+        <button class="smart-nav-item" type="button" data-smart-view="attention"><span class="smart-icon" aria-hidden="true">!</span><span>需要处理</span><b id="navAttention">0</b></button>
+        <button class="smart-nav-item" type="button" data-smart-view="draft"><span class="smart-icon" aria-hidden="true">○</span><span>本地草稿</span><b id="navDraft">0</b></button>
+      </nav>
+
+      <nav class="side-section" aria-labelledby="categoryHeading">
+        <div class="section-label">
+          <span id="categoryHeading">知识分类</span>
+          <span id="categoryCount">0</span>
+        </div>
+        <div class="category-tree" id="categoryTree"></div>
+      </nav>
+
+      <section class="side-section" aria-labelledby="tagHeading">
+        <div class="section-label">
+          <span id="tagHeading">常用标签</span>
+          <button class="text-button" id="clearTags" type="button">清除</button>
+        </div>
+        <div class="tag-cloud" id="tagCloud"></div>
+      </section>
+
+      <section class="source-card" aria-labelledby="sourceHeading">
+        <div class="source-icon" aria-hidden="true">JSON</div>
+        <div>
+          <h3 id="sourceHeading">仓库数据为准</h3>
+          <p>页面修改只保存在本机。导出 JSON 后，通过 Git / PR 更新正式目录。</p>
+        </div>
+        <button class="text-button" id="resetDraftButton" type="button">恢复仓库版本</button>
+        <button class="text-button sidebar-appearance" id="appearanceSidebarButton" type="button">更换外观</button>
+      </section>
+    </aside>
+
+    <button class="sidebar-scrim" id="sidebarScrim" type="button" tabindex="-1" aria-label="关闭分类导航"></button>
+
+    <main id="main" class="main-content">
+      <section class="page-heading">
+        <div>
+          <div class="eyebrow"><span class="pulse-dot"></span><span id="dataModeText">仓库目录</span></div>
+          <h1>学习笔记</h1>
+          <p>整理、查找并维护你已经发布的知识页面。</p>
+        </div>
+        <div class="heading-actions">
+          <button class="button button-secondary" id="featuredButton" type="button">查看精选</button>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-label="目录统计">
+        <article class="stat-card"><span>全部</span><strong id="statTotal">0</strong><small>篇笔记</small></article>
+        <article class="stat-card"><span>已发布</span><strong id="statPublished">0</strong><small>可访问</small></article>
+        <article class="stat-card"><span>需处理</span><strong id="statUnchecked">0</strong><small>链接或草稿</small></article>
+        <article class="stat-card"><span>分类</span><strong id="statCategories">0</strong><small>个知识域</small></article>
+      </section>
+
+      <section class="focus-row" aria-label="继续阅读与维护提醒">
+        <article class="continue-card" id="continueCard"></article>
+        <article class="attention-card" id="attentionCard" role="button" tabindex="0" aria-label="查看需要处理的笔记"></article>
+      </section>
+
+      <section class="library-section" aria-labelledby="libraryHeading">
+        <div class="library-head">
+          <div>
+            <span class="eyebrow">你的知识库</span>
+            <h2 id="libraryHeading">全部学习笔记</h2>
+          </div>
+          <div class="result-meta"><strong id="resultCount">0</strong><span>篇结果</span></div>
+        </div>
+
+        <div class="library-toolbar" aria-label="快捷筛选与排序">
+          <div class="quick-filters" role="group" aria-label="快捷筛选">
+            <button class="quick-filter is-active" type="button" data-quick-filter="all">全部</button>
+            <button class="quick-filter" type="button" data-quick-filter="published">已发布</button>
+            <button class="quick-filter" type="button" data-quick-filter="attention">需处理</button>
+            <button class="quick-filter" type="button" data-quick-filter="draft">草稿</button>
+          </div>
+          <div class="toolbar-tail">
+            <label class="sort-control"><span class="sr-only">排序方式</span><select id="sortFilter"><option value="updated-desc">最近更新</option><option value="published-desc">最近发布</option><option value="title-asc">标题 A–Z</option><option value="reading-asc">阅读时长</option></select></label>
+            <details class="advanced-filters">
+              <summary class="button button-quiet">筛选</summary>
+              <div class="filter-popover">
+                <label><span>发布状态</span><select id="statusFilter"><option value="all">全部状态</option><option value="published">已发布</option><option value="draft">草稿</option><option value="archived">已归档</option></select></label>
+                <label><span>链接状态</span><select id="linkFilter"><option value="all">全部链接</option><option value="healthy">正常</option><option value="unchecked">待检查</option><option value="broken">异常</option></select></label>
+                <button class="filter-summary" id="filterSummary" type="button" aria-label="清除全部筛选"><span>未启用筛选</span><b>×</b></button>
+              </div>
+            </details>
+            <div class="view-switch" role="group" aria-label="切换显示方式">
+              <button type="button" data-view="list" aria-label="列表视图" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"></path></svg></button>
+              <button type="button" data-view="grid" aria-label="卡片视图" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"></rect><rect x="14" y="4" width="6" height="6"></rect><rect x="4" y="14" width="6" height="6"></rect><rect x="14" y="14" width="6" height="6"></rect></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="active-filter-row" id="activeFilterRow" hidden></div>
+
+        <div class="notes-grid" id="notesGrid" aria-live="polite"></div>
+        <div class="empty-state" id="emptyState" hidden>
+          <div aria-hidden="true">∅</div>
+          <h3>没有匹配的笔记</h3>
+          <p>试试清除筛选条件，或创建一篇新的本地草稿。</p>
+          <button class="button button-secondary" id="emptyResetButton" type="button">清除筛选</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="appearance-dialog" id="appearanceDialog" aria-labelledby="themeHeading">
+    <header class="dialog-header">
+      <div><span class="eyebrow">个性化</span><h2 id="themeHeading">选择外观</h2></div>
+      <button class="dialog-close" id="closeAppearance" type="button" aria-label="关闭外观设置">×</button>
+    </header>
+    <p id="themeDescription">编辑部式留白，让内容成为视觉中心。</p>
+    <div class="theme-options" role="group" aria-label="切换视觉主题">
+      <button class="theme-option is-active" type="button" data-theme-value="atelier" aria-pressed="true"><span class="theme-swatch swatch-atelier" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Atelier</strong><small>日常默认 · 清晰克制</small></span></button>
+      <button class="theme-option" type="button" data-theme-value="command" aria-pressed="false"><span class="theme-swatch swatch-command" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Command</strong><small>深色 · 高密度</small></span></button>
+      <button class="theme-option" type="button" data-theme-value="atlas" aria-pressed="false"><span class="theme-swatch swatch-atlas" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Atlas</strong><small>柔和 · 知识地图</small></span></button>
+      <button class="theme-option" type="button" data-theme-value="blueprint" aria-pressed="false"><span class="theme-swatch swatch-blueprint" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Blueprint</strong><small>理性 · 工程蓝图</small></span></button>
+      <button class="theme-option" type="button" data-theme-value="spectrum" aria-pressed="false"><span class="theme-swatch swatch-spectrum" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Spectrum</strong><small>现代 · 产品工作台</small></span></button>
+    </div>
+  </dialog>
+
+  <dialog class="detail-dialog" id="detailDialog" aria-labelledby="detailTitle">
+    <button class="dialog-close" id="closeDetail" type="button" aria-label="关闭详情">×</button>
+    <div id="detailContent"></div>
+  </dialog>
+
+  <dialog class="editor-dialog" id="editorDialog" aria-labelledby="editorTitle">
+    <form id="noteForm" method="dialog">
+      <header class="dialog-header">
+        <div><span class="eyebrow">LOCAL DRAFT / 本地草稿</span><h2 id="editorTitle">新建笔记</h2></div>
+        <button class="dialog-close" id="closeEditor" type="button" aria-label="关闭编辑器">×</button>
+      </header>
+      <p class="form-notice">保存后只写入当前浏览器。需要发布时请导出 JSON，再通过 Git / PR 更新仓库。</p>
+      <input id="noteOriginalId" type="hidden">
+      <div class="form-grid">
+        <label class="field field-wide"><span>标题 *</span><input id="noteTitle" name="title" required maxlength="100" placeholder="例如：AI开窍计划第四课"></label>
+        <label class="field field-wide"><span>摘要 *</span><textarea id="noteSummary" name="summary" required rows="3" maxlength="220" placeholder="用一两句话说明读者能获得什么"></textarea></label>
+        <label class="field"><span>稳定 ID</span><input id="noteId" name="id" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="ai-skill-course"></label>
+        <label class="field"><span>阅读时长（分钟）</span><input id="noteMinutes" name="readingMinutes" type="number" min="1" max="999" value="10"></label>
+        <label class="field field-wide"><span>页面 URL *</span><input id="noteUrl" name="url" required placeholder="https://… 或 notes/example.html"></label>
+        <label class="field field-wide"><span>仓库 URL</span><input id="noteRepoUrl" name="repoUrl" placeholder="https://github.com/owner/repo"></label>
+        <label class="field"><span>分类路径 *</span><input id="noteCategory" name="category" required placeholder="AI / Skill 创建"></label>
+        <label class="field"><span>标签（逗号分隔）</span><input id="noteTags" name="tags" placeholder="Skill, AI夜校, 实战课"></label>
+        <label class="field"><span>发布状态</span><select id="noteStatus" name="status"><option value="draft">草稿</option><option value="published">已发布</option><option value="archived">已归档</option></select></label>
+        <label class="field"><span>链接状态</span><select id="noteLinkStatus" name="linkStatus"><option value="unchecked">待检查</option><option value="healthy">正常</option><option value="broken">异常</option></select></label>
+        <label class="check-field field-wide"><input id="noteFeatured" name="featured" type="checkbox"><span>设为精选笔记</span></label>
+      </div>
+      <p class="form-error" id="formError" role="alert"></p>
+      <footer class="dialog-footer">
+        <button class="button button-quiet" id="cancelEditor" type="button">取消</button>
+        <button class="button button-primary" type="submit">保存到本机</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <input id="importInput" type="file" accept="application/json,.json" hidden>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
