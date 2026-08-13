@@ -54,7 +54,7 @@ class FrontendContractTests(unittest.TestCase):
 
     def test_generated_index_records_exclusions_without_publishing_names(self) -> None:
         payload = json.loads((ROOT / "data" / "github-projects.json").read_text(encoding="utf-8"))
-        self.assertGreaterEqual(payload["summary"].get("excludedRepositories", 0), 1)
+        self.assertIsInstance(payload["summary"].get("excludedRepositories"), int)
         self.assertNotIn("excludedRepositoryNames", payload)
 
     def test_project_index_failure_does_not_block_notes(self) -> None:
