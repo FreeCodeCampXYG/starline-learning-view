@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="用于管理 GitHub Pages 学习笔记网页的静态知识目录。">
   <title>墨卷 · 学习笔记管理台</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body data-theme="atelier">
@@ -138,10 +139,49 @@
             <div class="view-switch" role="group" aria-label="切换显示方式">
               <button type="button" data-view="list" aria-label="列表视图" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"></path></svg></button>
               <button type="button" data-view="grid" aria-label="卡片视图" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"></rect><rect x="14" y="4" width="6" height="6"></rect><rect x="4" y="14" width="6" height="6"></rect><rect x="14" y="14" width="6" height="6"></rect></svg></button>
+              <button type="button" data-view="map" aria-label="知识地图" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="18" cy="18" r="2.5"></circle><path d="m8.2 10.9 7.6-3.8M8.2 13.1l7.6 3.8"></path></svg></button>
             </div>
           </div>
         </div>
         <div class="active-filter-row" id="activeFilterRow" hidden></div>
+
+        <section class="knowledge-map" id="knowledgeMap" aria-labelledby="knowledgeMapTitle" hidden>
+          <div class="knowledge-map-heading">
+            <div>
+              <span class="eyebrow">RELATION MAP / 关系探索</span>
+              <h3 id="knowledgeMapTitle">知识地图</h3>
+              <p id="knowledgeMapSummary">正在整理笔记、项目与知识分类之间的关系…</p>
+            </div>
+            <div class="knowledge-map-controls" aria-label="知识地图控制">
+              <label class="map-control map-search-control" for="knowledgeMapSearch"><span>搜索关系</span><input id="knowledgeMapSearch" type="search" placeholder="节点、摘要或关系" autocomplete="off"></label>
+              <label class="map-control" for="knowledgeMapScope"><span>探索范围</span><select id="knowledgeMapScope"><option value="overview">知识主线</option><option value="projects">项目关联</option><option value="tags">标签网络</option><option value="all">完整图谱</option></select></label>
+              <div class="map-control-actions" aria-label="布局控制">
+                <button id="knowledgeMapFit" type="button">适合</button>
+                <button id="knowledgeMapPause" type="button" aria-pressed="false">暂停</button>
+                <button id="knowledgeMapReset" type="button">重置</button>
+              </div>
+            </div>
+          </div>
+          <p class="knowledge-map-status" id="knowledgeMapStatus" role="status" aria-live="polite">输入节点或关系文字开始搜索。</p>
+          <div class="knowledge-map-legend" aria-label="知识地图图例">
+            <span data-map-kind="domain">领域 · 六边形</span><span data-map-kind="category">分类 · 圆形</span><span data-map-kind="note">笔记 · 圆形</span><span data-map-kind="project">项目 · 方形</span><span data-map-kind="tag">标签 · 菱形</span><span class="map-edge-key explicit">人工确认关系</span><span class="map-edge-key derived">字段推导关系</span>
+          </div>
+          <div class="knowledge-map-workspace">
+            <div class="knowledge-map-stage" id="knowledgeMapStage">
+              <svg id="knowledgeMapGraph" viewBox="0 0 960 560" role="group" aria-label="可拖拽和缩放的知识关系图。选择节点可查看相邻关系。">
+                <defs><marker id="knowledgeMapArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"></path></marker></defs>
+                <g id="knowledgeMapViewport"><g id="knowledgeMapEdges"></g><g id="knowledgeMapEdgeLabels"></g><g id="knowledgeMapNodes"></g></g>
+              </svg>
+              <p class="knowledge-map-empty" id="knowledgeMapEmpty" hidden>当前范围没有可显示的关系。</p>
+            </div>
+            <aside class="knowledge-map-inspector" aria-labelledby="knowledgeMapDetailTitle">
+              <div class="map-inspector-heading"><h4 id="knowledgeMapDetailTitle">节点详情</h4><span id="knowledgeMapVisibleCount">0</span></div>
+              <div class="knowledge-map-detail" id="knowledgeMapDetail">选择图中节点，查看它与笔记、项目、分类或标签之间的关系。</div>
+              <div class="map-accessible-heading"><h4>可访问节点</h4><span>支持键盘定位</span></div>
+              <div class="knowledge-map-node-list" id="knowledgeMapNodeList" role="list"></div>
+            </aside>
+          </div>
+        </section>
 
         <div class="notes-grid" id="notesGrid" aria-live="polite"></div>
         <div class="empty-state" id="emptyState" hidden>
@@ -245,6 +285,7 @@
   <input id="importInput" type="file" accept="application/json,.json" hidden>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="knowledge-map.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

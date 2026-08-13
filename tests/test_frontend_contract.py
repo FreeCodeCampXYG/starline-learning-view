@@ -30,6 +30,40 @@ class FrontendContractTests(unittest.TestCase):
         for project_filter in ("owned", "pages", "forks", "starred"):
             self.assertIn(f'data-project-filter="{project_filter}"', html)
 
+    def test_knowledge_map_is_wired_to_existing_sources(self) -> None:
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        app_script = (ROOT / "app.js").read_text(encoding="utf-8")
+        map_script = (ROOT / "knowledge-map.js").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        relations = json.loads((ROOT / "data" / "relations.json").read_text(encoding="utf-8"))
+
+        self.assertIn('data-view="map"', html)
+        self.assertIn('id="knowledgeMapGraph"', html)
+        self.assertIn('src="knowledge-map.js"', html)
+        self.assertIn('fetch("data/relations.json"', app_script)
+        self.assertIn("function buildKnowledgeMapGraph()", map_script)
+        self.assertIn("getFilteredNotes()", map_script)
+        self.assertIn("state.projects.filter", map_script)
+        self.assertIn("knowledge-map.js", workflow)
+        self.assertIn("data/relations.json", workflow)
+        self.assertGreater(len(relations["relations"]), 0)
+
+    def test_explicit_relation_endpoints_exist(self) -> None:
+        notes = json.loads((ROOT / "data" / "notes.json").read_text(encoding="utf-8"))["notes"]
+        projects = json.loads((ROOT / "data" / "github-projects.json").read_text(encoding="utf-8"))["projects"]
+        relations = json.loads((ROOT / "data" / "relations.json").read_text(encoding="utf-8"))["relations"]
+        known = {
+            "note": {note["id"] for note in notes},
+            "project": {project["name"] for project in projects if not project["fork"]},
+        }
+        relation_ids: set[str] = set()
+        for relation in relations:
+            self.assertNotIn(relation["id"], relation_ids)
+            relation_ids.add(relation["id"])
+            self.assertIn(relation["sourceId"], known[relation["sourceType"]])
+            self.assertIn(relation["targetId"], known[relation["targetType"]])
+            self.assertTrue(relation["relation"].strip())
+
     def test_generated_summary_matches_project_arrays(self) -> None:
         payload = json.loads((ROOT / "data" / "github-projects.json").read_text(encoding="utf-8"))
         projects = payload["projects"]

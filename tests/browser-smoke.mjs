@@ -79,6 +79,33 @@ assert(usability.focusCards === 2, "最近更新与维护提醒未渲染");
 assert(usability.defaultList, "文本型笔记应默认使用列表视图");
 assert(usability.exactTotal === "10", "统计数字应立即显示真实值");
 
+await evaluate("document.querySelector('[data-view=\"map\"]').click(); true");
+await delay(120);
+const knowledgeMap = await evaluate(`({
+  visible: !document.querySelector('#knowledgeMap').hidden && document.querySelector('#knowledgeMap').checkVisibility(),
+  notesHidden: document.querySelector('#notesGrid').hidden && !document.querySelector('#notesGrid').checkVisibility(),
+  nodes: document.querySelectorAll('.knowledge-map-node').length,
+  edges: document.querySelectorAll('.knowledge-map-edge').length,
+  explicitEdges: document.querySelectorAll('.knowledge-map-edge.explicit').length
+})`);
+assert(knowledgeMap.visible, "知识地图未显示");
+assert(knowledgeMap.notesHidden, "知识地图视图不应同时显示笔记卡片");
+assert(knowledgeMap.nodes > 10, "知识地图节点未从现有数据生成");
+assert(knowledgeMap.edges > 10, "知识地图关系未从现有数据生成");
+assert(knowledgeMap.explicitEdges > 0, "人工确认关系未渲染");
+await evaluate(`(() => {
+  const input = document.querySelector('#knowledgeMapSearch');
+  input.value = 'Skill';
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  return true;
+})()`);
+await delay(60);
+assert(await evaluate("document.querySelectorAll('.knowledge-map-node.search-match').length") > 0, "知识地图搜索未标记匹配节点");
+assert(await evaluate("document.querySelectorAll('.knowledge-map-node').length") > await evaluate("document.querySelectorAll('.knowledge-map-node.search-match').length"), "知识地图搜索未保留相邻上下文");
+await evaluate("document.querySelector('.knowledge-map-node.search-match').dispatchEvent(new MouseEvent('click', { bubbles: true })); true");
+assert(await evaluate("document.querySelector('#knowledgeMapDetail').textContent.trim().length") > 20, "知识地图节点详情未更新");
+await evaluate("document.querySelector('[data-view=\"list\"]').click(); true");
+
 const githubOverview = await evaluate(`({
   owned: document.querySelector('#projectOwnedCount').textContent.trim(),
   forks: document.querySelector('#projectForkCount').textContent.trim(),

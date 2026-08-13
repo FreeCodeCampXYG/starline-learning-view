@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0.0",
+  "updatedAt": "2026-08-13",
+  "relations": [
+    {
+      "id": "skill-course-to-meta-skill",
+      "sourceType": "note",
+      "sourceId": "ai-skill-course-04",
+      "targetType": "project",
+      "targetId": "starline-meta-skill",
+      "relation": "课程方法沉淀为 Skill 创建工作流"
+    },
+    {
+      "id": "multimodal-note-to-study-web",
+      "sourceType": "note",
+      "sourceId": "multimodal-study-notes",
+      "targetType": "project",
+      "targetId": "starline-study-web",
+      "relation": "多源交叉校验方法由项目实现"
+    },
+    {
+      "id": "product-design-to-learning-view",
+      "sourceType": "note",
+      "sourceId": "first-principles-product-design",
+      "targetType": "project",
+      "targetId": "starline-learning-view",
+      "relation": "产品方法用于管理台体验设计"
+    },
+    {
+      "id": "information-architecture-to-learning-view",
+      "sourceType": "note",
+      "sourceId": "information-architecture-notes",
+      "targetType": "project",
+      "targetId": "starline-learning-view",
+      "relation": "分类与标签原则用于目录结构"
+    },
+    {
+      "id": "git-delivery-to-meta-skill",
+      "sourceType": "note",
+      "sourceId": "safe-git-delivery",
+      "targetType": "project",
+      "targetId": "starline-meta-skill",
+      "relation": "安全发布边界用于 Skill 交付"
+    },
+    {
+      "id": "meta-skill-to-study-web",
+      "sourceType": "project",
+      "sourceId": "starline-meta-skill",
+      "targetType": "project",
+      "targetId": "starline-study-web",
+      "relation": "规范 Skill 的创建与优化"
+    },
+    {
+      "id": "study-web-to-learning-view",
+      "sourceType": "project",
+      "sourceId": "starline-study-web",
+      "targetType": "project",
+      "targetId": "starline-learning-view",
+      "relation": "生成学习网页并进入目录管理"
+    },
+    {
+      "id": "video-prompt-to-video-director",
+      "sourceType": "project",
+      "sourceId": "starline-video-prompt",
+      "targetType": "project",
+      "targetId": "starline-flux-video-director",
+      "relation": "提供分镜与连续镜头提示词"
+    },
+    {
+      "id": "information-architecture-supports-product-design",
+      "sourceType": "note",
+      "sourceId": "information-architecture-notes",
+      "targetType": "note",
+      "targetId": "first-principles-product-design",
+      "relation": "为界面决策提供信息结构基础"
+    }
+  ]
+}

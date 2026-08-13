@@ -39,6 +39,7 @@ const state = {
   projectPayload: null,
   projects: [],
   starredProjects: [],
+  relations: [],
   projectFilter: "owned",
   query: "",
   category: "all",
@@ -48,7 +49,7 @@ const state = {
   quickFilter: "all",
   sort: "updated-desc",
   featuredOnly: false,
-  view: readStorage(STORAGE.view) || "list",
+  view: ["list", "grid", "map"].includes(readStorage(STORAGE.view)) ? readStorage(STORAGE.view) : "list",
   localMode: false
 };
 
@@ -62,7 +63,7 @@ async function initialize() {
   bindEvents();
   const requestedTheme = new URLSearchParams(location.search).get("theme");
   applyTheme(THEME_COPY[requestedTheme] ? requestedTheme : (readStorage(STORAGE.theme) || "atelier"));
-  applyView(state.view === "list" ? "list" : "grid");
+  applyView(state.view);
 
   try {
     const response = await fetch("data/notes.json", { cache: "no-store" });
@@ -91,6 +92,13 @@ async function initialize() {
         }
       }
     } catch { /* 项目索引是辅助数据，失败时不阻断核心笔记目录。 */ }
+    try {
+      const relationResponse = await fetch("data/relations.json", { cache: "no-store" });
+      if (relationResponse.ok) {
+        const relationPayload = await relationResponse.json();
+        if (Array.isArray(relationPayload.relations)) state.relations = structuredCloneSafe(relationPayload.relations);
+      }
+    } catch { /* 关系数据是辅助层，失败时继续提供列表与卡片视图。 */ }
     renderAll();
   } catch (error) {
     renderLoadError(error);
@@ -113,7 +121,12 @@ function cacheDom() {
     "exportButton", "importInput", "resetDraftButton", "toast",
     "projectGrid", "projectEmpty", "projectResultCount", "projectSyncText",
     "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectStarredCount", "commitScope",
-    "projectFilterTabs", "projectTabIndicator", "projectPanel"
+    "projectFilterTabs", "projectTabIndicator", "projectPanel",
+    "knowledgeMap", "knowledgeMapSearch", "knowledgeMapScope", "knowledgeMapFit",
+    "knowledgeMapPause", "knowledgeMapReset", "knowledgeMapGraph", "knowledgeMapViewport",
+    "knowledgeMapEdges", "knowledgeMapEdgeLabels", "knowledgeMapNodes", "knowledgeMapEmpty",
+    "knowledgeMapSummary", "knowledgeMapStatus", "knowledgeMapDetail", "knowledgeMapVisibleCount",
+    "knowledgeMapNodeList"
   ].forEach((id) => { dom[id] = document.getElementById(id); });
 }
 
@@ -215,6 +228,7 @@ function bindEvents() {
   document.querySelectorAll("[data-view]").forEach((button) => {
     button.addEventListener("click", () => applyView(button.dataset.view));
   });
+  initializeKnowledgeMapEvents();
 
   document.querySelectorAll("[data-theme-value]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -514,8 +528,10 @@ function renderLibrary() {
   dom.resultCount.textContent = String(notes.length);
   dom.libraryHeading.textContent = getLibraryTitle();
   dom.notesGrid.innerHTML = notes.map(renderNoteCard).join("");
-  dom.notesGrid.hidden = notes.length === 0;
-  dom.emptyState.hidden = notes.length !== 0;
+  dom.notesGrid.hidden = state.view === "map" || notes.length === 0;
+  dom.knowledgeMap.hidden = state.view !== "map";
+  dom.emptyState.hidden = state.view === "map" || notes.length !== 0;
+  if (state.view === "map") renderKnowledgeMap();
   renderFilterSummary();
 }
 
@@ -796,10 +812,14 @@ function applyTheme(theme) {
 }
 
 function applyView(view) {
-  state.view = view === "list" ? "list" : "grid";
+  state.view = ["list", "grid", "map"].includes(view) ? view : "list";
   writeStorage(STORAGE.view, state.view);
   dom.notesGrid.classList.toggle("is-list", state.view === "list");
+  dom.notesGrid.hidden = state.view === "map" || getFilteredNotes().length === 0;
+  dom.knowledgeMap.hidden = state.view !== "map";
+  dom.emptyState.hidden = state.view === "map" || getFilteredNotes().length !== 0;
   document.querySelectorAll("[data-view]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.view === state.view)));
+  if (state.view === "map") window.requestAnimationFrame(() => renderKnowledgeMap({ fit: true }));
 }
 
 function buildCategoryTree(notes) {
