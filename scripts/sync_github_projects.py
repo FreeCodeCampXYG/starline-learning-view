@@ -131,6 +131,19 @@ def derived_pages_url(owner: str, repository_name: str) -> str:
     return f"https://{owner.casefold()}.github.io/{repository_name}/"
 
 
+def fallback_description(repository: dict[str, Any]) -> str:
+    """为未填写 Description 的仓库生成有事实依据的简短介绍。"""
+    name = str(repository.get("name") or "").strip()
+    if name.casefold() == "starline-learning-view":
+        return "集中管理学习笔记网页与 GitHub Pages 项目的静态知识库导航。"
+    language = str(repository.get("language") or "").strip()
+    if repository.get("fork"):
+        return "从上游同步的 Fork 项目，可前往源码仓库查看来源与完整说明。"
+    if repository.get("has_pages"):
+        return f"已通过 GitHub Pages 发布的 {language or 'Web'} 项目，可直接在线查看。"
+    return f"{language or '公开'}项目，详细功能说明可在源码仓库中继续补充。"
+
+
 def normalize_repository(
     repository: dict[str, Any],
     owner: str,
@@ -146,7 +159,8 @@ def normalize_repository(
         "id": int(repository.get("id") or 0),
         "name": name,
         "fullName": str(repository.get("full_name") or f"{owner}/{name}"),
-        "description": str(repository.get("description") or "").strip(),
+        "description": str(repository.get("description") or "").strip() or fallback_description(repository),
+        "descriptionSource": "github" if str(repository.get("description") or "").strip() else "generated-fallback",
         "repoUrl": str(repository.get("html_url") or f"https://github.com/{owner}/{name}"),
         "pagesUrl": derived_pages_url(owner, name) if has_pages else None,
         "hasPages": has_pages,
@@ -173,7 +187,8 @@ def normalize_starred(repository: dict[str, Any]) -> dict[str, Any]:
         "id": int(repository.get("id") or 0),
         "name": str(repository.get("name") or ""),
         "fullName": str(repository.get("full_name") or ""),
-        "description": str(repository.get("description") or "").strip(),
+        "description": str(repository.get("description") or "").strip() or "已收藏的开源项目，可前往源码仓库查看完整介绍与使用方式。",
+        "descriptionSource": "github" if str(repository.get("description") or "").strip() else "generated-fallback",
         "repoUrl": str(repository.get("html_url") or ""),
         "homepage": str(repository.get("homepage") or "").strip() or None,
         "language": str(repository.get("language") or "").strip() or None,

@@ -94,6 +94,17 @@ assert(githubOverview.defaultCards === expectedGitHub.owned, "默认应展示全
 
 await evaluate("document.querySelector('[data-project-filter=\"pages\"]').click(); true");
 assert(await evaluate("document.querySelectorAll('.project-card').length") === expectedGitHub.pages, "Pages 项目筛选未生效");
+const pagesTabState = await evaluate(`({
+  selected: document.querySelector('[data-project-filter="pages"]').getAttribute('aria-selected'),
+  labelledBy: document.querySelector('#projectPanel').getAttribute('aria-labelledby'),
+  animated: document.querySelector('#projectGrid').classList.contains('is-entering'),
+  targets: [...document.querySelectorAll('.project-open')].map(link => link.href)
+})`);
+assert(pagesTabState.selected === "true", "Pages 标签未暴露选中状态");
+assert(pagesTabState.labelledBy === "projectTabPages", "项目面板未关联当前标签");
+assert(pagesTabState.animated, "Pages 标签切换后缺少内容反馈");
+assert(pagesTabState.targets.every((url) => /^https:\/\/freecodecampxyg\.github\.io\/[^/]+\/$/i.test(url)), "Pages 打开地址未按仓库名生成");
+assert(await evaluate("[...document.querySelectorAll('.project-card > p')].every(node => node.textContent.trim() && !node.textContent.includes('暂未填写'))"), "项目卡片不应显示空介绍");
 await evaluate("document.querySelector('[data-project-filter=\"forks\"]').click(); true");
 assert(await evaluate("document.querySelectorAll('.project-card').length") === expectedGitHub.forks, "Fork 项目筛选未生效");
 await evaluate("document.querySelector('[data-project-filter=\"starred\"]').click(); true");

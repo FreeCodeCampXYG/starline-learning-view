@@ -2475,12 +2475,68 @@ body[data-theme="atelier"]::before {
 .project-toolbar {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
   margin-top: 18px;
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface-strong);
+}
+
+.project-filter-tabs {
+  --project-tab-left: 0px;
+  --project-tab-width: 0px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.project-tab-indicator {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 0;
+  width: var(--project-tab-width);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
+  transform: translateX(var(--project-tab-left));
+  transition: width 260ms cubic-bezier(.2, .8, .2, 1), transform 260ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.project-tab {
+  position: relative;
+  z-index: 1;
+  min-height: 36px;
+  padding: 8px 14px;
+  color: var(--ink-muted);
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.project-tab:hover {
+  color: var(--ink);
+}
+
+.project-tab:active {
+  transform: scale(.97);
+}
+
+.project-tab.is-active {
+  color: var(--ink);
+}
+
+.project-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .project-profile-link {
@@ -2503,6 +2559,16 @@ body[data-theme="atelier"]::before {
   line-height: 1.55;
 }
 
+.project-panel:focus {
+  outline: none;
+}
+
+.project-panel:focus-visible {
+  border-radius: var(--radius-lg);
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
 .project-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2519,10 +2585,30 @@ body[data-theme="atelier"]::before {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface-strong);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .project-card:hover {
   border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .045);
+  transform: translateY(-2px);
+}
+
+.project-grid.is-entering .project-card {
+  animation: project-card-enter 420ms cubic-bezier(.2, .8, .2, 1) both;
+  animation-delay: calc(var(--project-card-index) * 35ms);
+}
+
+@keyframes project-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .project-card-top {
@@ -2567,6 +2653,37 @@ body[data-theme="atelier"]::before {
   line-height: 1.6;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+}
+
+.project-pages-target {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin-top: 12px;
+  padding: 8px 9px;
+  color: var(--ink-faint);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent-soft) 48%, var(--surface-soft));
+  font-size: 9px;
+}
+
+.project-pages-target span {
+  flex: 0 0 auto;
+  color: var(--accent-ink);
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.project-pages-target code {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-badges {
@@ -2707,15 +2824,25 @@ body[data-theme="atelier"]::before {
   }
   .project-toolbar {
     align-items: stretch;
-    overflow-x: auto;
+    flex-wrap: wrap;
   }
 
-  .project-toolbar > * {
-    flex: 0 0 auto;
+  .project-filter-tabs {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .project-filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .project-tab {
+    flex: 1 0 auto;
   }
 
   .project-profile-link {
-    margin-left: 8px;
+    margin-left: auto;
   }
 
   .project-grid {

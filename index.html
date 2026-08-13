@@ -169,20 +169,25 @@
           <article><span>我的 Star</span><strong id="projectStarredCount">0</strong><small>公开收藏</small></article>
         </div>
 
-        <div class="project-toolbar" role="group" aria-label="GitHub 项目范围">
-          <button class="quick-filter is-active" type="button" data-project-filter="owned">自建项目</button>
-          <button class="quick-filter" type="button" data-project-filter="pages">已部署 Pages</button>
-          <button class="quick-filter" type="button" data-project-filter="forks">Fork 项目</button>
-          <button class="quick-filter" type="button" data-project-filter="starred">我的 Star</button>
+        <div class="project-toolbar">
+          <div class="project-filter-tabs" id="projectFilterTabs" role="tablist" aria-label="GitHub 项目范围">
+            <span class="project-tab-indicator" id="projectTabIndicator" aria-hidden="true"></span>
+            <button class="project-tab is-active" id="projectTabOwned" type="button" role="tab" aria-selected="true" aria-controls="projectPanel" data-project-filter="owned">自建项目</button>
+            <button class="project-tab" id="projectTabPages" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="pages">已部署 Pages</button>
+            <button class="project-tab" id="projectTabForks" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="forks">Fork 项目</button>
+            <button class="project-tab" id="projectTabStarred" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="starred">我的 Star</button>
+          </div>
           <a class="project-profile-link" href="https://github.com/FreeCodeCampXYG?tab=repositories" target="_blank" rel="noopener noreferrer">GitHub 全部仓库 ↗</a>
         </div>
 
-        <p class="commit-scope" id="commitScope">提交数正在读取；统计口径为 GitHub 账号身份匹配的公开仓库默认分支。</p>
+        <div class="project-panel" id="projectPanel" role="tabpanel" aria-labelledby="projectTabOwned" tabindex="0">
+          <p class="commit-scope" id="commitScope">提交数正在读取；统计口径为 GitHub 账号身份匹配的公开仓库默认分支。</p>
 
-        <div class="project-grid" id="projectGrid" aria-live="polite"></div>
-        <div class="project-empty" id="projectEmpty" hidden>
-          <strong>没有匹配的公开项目</strong>
-          <span>可切换项目范围，或清除顶部搜索词。</span>
+          <div class="project-grid" id="projectGrid" aria-live="polite"></div>
+          <div class="project-empty" id="projectEmpty" hidden>
+            <strong>没有匹配的公开项目</strong>
+            <span>可切换项目范围，或清除顶部搜索词。</span>
+          </div>
         </div>
       </section>
     </main>

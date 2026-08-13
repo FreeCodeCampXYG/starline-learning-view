@@ -46,6 +46,8 @@ class GitHubProjectIndexTests(unittest.TestCase):
 
         self.assertEqual(payload["owner"], "Starline")
         self.assertEqual(payload["projects"][0]["pagesUrl"], "https://starline.github.io/course-note/")
+        self.assertEqual(payload["projects"][0]["description"], "学习笔记")
+        self.assertEqual(payload["projects"][0]["descriptionSource"], "github")
         self.assertNotIn("private", payload["projects"][0])
         self.assertFalse(payload["projects"][0]["fork"])
         self.assertEqual(payload["projects"][0]["commitCount"], 4)
@@ -57,6 +59,24 @@ class GitHubProjectIndexTests(unittest.TestCase):
             MODULE.derived_pages_url("Starline", "starline.github.io"),
             "https://starline.github.io/",
         )
+
+    def test_missing_description_gets_explicit_fallback(self) -> None:
+        repository = {
+            "id": 8,
+            "name": "starline-learning-view",
+            "full_name": "FreeCodeCampXYG/starline-learning-view",
+            "description": None,
+            "html_url": "https://github.com/FreeCodeCampXYG/starline-learning-view",
+            "has_pages": True,
+            "language": "CSS",
+            "fork": False,
+            "updated_at": "2026-08-13T00:00:00Z",
+        }
+
+        project = MODULE.normalize_repository(repository, "FreeCodeCampXYG")
+
+        self.assertIn("学习笔记网页", project["description"])
+        self.assertEqual(project["descriptionSource"], "generated-fallback")
 
     def test_link_header_returns_commit_count(self) -> None:
         link = '<https://api.github.com/repositories/1/commits?per_page=1&page=7>; rel="last"'

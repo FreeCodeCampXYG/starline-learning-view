@@ -53,6 +53,7 @@ const state = {
 };
 
 const dom = {};
+let projectAnimationTimer = 0;
 
 document.addEventListener("DOMContentLoaded", initialize);
 
@@ -111,7 +112,8 @@ function cacheDom() {
     "noteLinkStatus", "noteMinutes", "noteFeatured", "formError", "importButton",
     "exportButton", "importInput", "resetDraftButton", "toast",
     "projectGrid", "projectEmpty", "projectResultCount", "projectSyncText",
-    "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectStarredCount", "commitScope"
+    "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectStarredCount", "commitScope",
+    "projectFilterTabs", "projectTabIndicator", "projectPanel"
   ].forEach((id) => { dom[id] = document.getElementById(id); });
 }
 
@@ -124,10 +126,11 @@ function bindEvents() {
 
   document.querySelectorAll("[data-project-filter]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.projectFilter = button.dataset.projectFilter;
-      renderProjects();
+      activateProjectFilter(button.dataset.projectFilter);
     });
   });
+  dom.projectFilterTabs.addEventListener("keydown", handleProjectTabKeydown);
+  window.addEventListener("resize", positionProjectTabIndicator);
   dom.statusFilter.addEventListener("change", (event) => {
     state.status = event.target.value;
     state.quickFilter = "all";
@@ -295,12 +298,45 @@ function renderAll() {
   renderDataMode();
 }
 
-function renderProjects() {
+function activateProjectFilter(filter) {
+  if (!["owned", "pages", "forks", "starred"].includes(filter)) return;
+  const changed = state.projectFilter !== filter;
+  state.projectFilter = filter;
+  renderProjects({ animate: changed });
+}
+
+function handleProjectTabKeydown(event) {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  const tabs = [...dom.projectFilterTabs.querySelectorAll("[data-project-filter]")];
+  const currentIndex = tabs.indexOf(document.activeElement);
+  if (currentIndex < 0) return;
+  event.preventDefault();
+  let nextIndex = currentIndex;
+  if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+  if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+  if (event.key === "Home") nextIndex = 0;
+  if (event.key === "End") nextIndex = tabs.length - 1;
+  tabs[nextIndex].focus();
+  activateProjectFilter(tabs[nextIndex].dataset.projectFilter);
+}
+
+function positionProjectTabIndicator() {
+  if (!dom.projectFilterTabs || !dom.projectTabIndicator) return;
+  const activeTab = dom.projectFilterTabs.querySelector("[data-project-filter].is-active");
+  if (!activeTab) return;
+  dom.projectFilterTabs.style.setProperty("--project-tab-left", `${activeTab.offsetLeft}px`);
+  dom.projectFilterTabs.style.setProperty("--project-tab-width", `${activeTab.offsetWidth}px`);
+}
+
+function renderProjects({ animate = false } = {}) {
   document.querySelectorAll("[data-project-filter]").forEach((button) => {
     const active = button.dataset.projectFilter === state.projectFilter;
     button.classList.toggle("is-active", active);
-    button.setAttribute("aria-pressed", String(active));
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+    if (active) dom.projectPanel.setAttribute("aria-labelledby", button.id);
   });
+  window.requestAnimationFrame(positionProjectTabIndicator);
 
   const source = state.projectFilter === "starred" ? state.starredProjects : state.projects;
   const projects = source.filter((project) => {
@@ -314,9 +350,16 @@ function renderProjects() {
   });
 
   dom.projectResultCount.textContent = String(projects.length);
-  dom.projectGrid.innerHTML = projects.map((project) => renderProjectCard(project, state.projectFilter === "starred")).join("");
+  dom.projectGrid.innerHTML = projects.map((project, index) => renderProjectCard(project, state.projectFilter === "starred", index)).join("");
   dom.projectGrid.hidden = projects.length === 0;
   dom.projectEmpty.hidden = projects.length !== 0;
+  if (animate && projects.length) {
+    dom.projectGrid.classList.remove("is-entering");
+    void dom.projectGrid.offsetWidth;
+    dom.projectGrid.classList.add("is-entering");
+    window.clearTimeout(projectAnimationTimer);
+    projectAnimationTimer = window.setTimeout(() => dom.projectGrid.classList.remove("is-entering"), 560);
+  }
   if (state.projectPayload) {
     const generatedAt = new Date(state.projectPayload.generatedAt);
     const time = Number.isNaN(generatedAt.getTime()) ? state.projectPayload.generatedAt : new Intl.DateTimeFormat("zh-CN", {
@@ -337,21 +380,23 @@ function renderProjects() {
   }
 }
 
-function renderProjectCard(project, starred = false) {
+function renderProjectCard(project, starred = false, index = 0) {
   const repoUrl = safeHref(project.repoUrl);
-  const pagesUrl = project.hasPages && project.pagesUrl ? safeHref(project.pagesUrl) : "";
+  const pagesUrl = deriveProjectPagesUrl(project, state.projectPayload?.owner);
   const homepage = project.homepage ? safeHref(project.homepage) : "";
   const primaryUrl = pagesUrl || homepage || repoUrl;
-  const description = project.description || "该仓库暂未填写项目说明。";
+  const description = projectDescription(project, starred);
+  const pagesTarget = pagesUrl ? pagesUrl.replace(/^https?:\/\//i, "") : "";
   const badges = (starred
     ? [project.language, `${Number(project.stars) || 0} Stars`, "我的收藏"]
     : [project.language, project.hasPages ? "GitHub Pages" : "源码仓库", project.fork ? "Fork" : "自建"]).filter(Boolean);
   const commitCopy = starred ? `社区 ${Number(project.stars) || 0} Stars` : (Number.isInteger(project.commitCount) ? `本人 ${project.commitCount} 次提交` : "本人提交数未知");
   const upstream = project.upstream?.repoUrl ? `<span class="project-upstream">上游：<a href="${escapeAttr(safeHref(project.upstream.repoUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(project.upstream.fullName || "查看来源")}</a></span>` : "";
-  return `<article class="project-card">
+  return `<article class="project-card" style="--project-card-index:${Math.min(index, 8)}">
     <div class="project-card-top"><span class="project-repo-mark" aria-hidden="true">⌘</span><span>${escapeHtml(project.fullName)}</span></div>
     <h3>${escapeHtml(project.name)}</h3>
     <p>${escapeHtml(description)}</p>
+    ${pagesTarget ? `<div class="project-pages-target" title="${escapeAttr(pagesUrl)}"><span>Pages</span><code>${escapeHtml(pagesTarget)}</code></div>` : ""}
     <div class="project-badges">${badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</div>
     ${upstream}
     <footer><span>${escapeHtml(commitCopy)} · 更新 ${formatTimestampDate(project.updatedAt)}</span><div>
@@ -359,6 +404,28 @@ function renderProjectCard(project, starred = false) {
       ${primaryUrl && primaryUrl !== repoUrl ? `<a class="project-open" href="${escapeAttr(primaryUrl)}" target="_blank" rel="noopener noreferrer">${pagesUrl ? "打开网站" : "访问主页"} ↗</a>` : ""}
     </div></footer>
   </article>`;
+}
+
+function deriveProjectPagesUrl(project, fallbackOwner = "") {
+  if (!project?.hasPages) return "";
+  const [fullNameOwner, fullNameRepository] = String(project.fullName || "").split("/");
+  const owner = (fullNameOwner || fallbackOwner || "").trim();
+  const repository = (fullNameRepository || project.name || "").trim();
+  if (!owner || !repository) return "";
+  const host = `${owner.toLocaleLowerCase("en-US")}.github.io`;
+  const path = repository.toLocaleLowerCase("en-US") === host ? "/" : `/${encodeURIComponent(repository)}/`;
+  return `https://${host}${path}`;
+}
+
+function projectDescription(project, starred = false) {
+  if (project.description?.trim()) return project.description.trim();
+  if (String(project.name).toLocaleLowerCase("en-US") === "starline-learning-view") {
+    return "集中管理学习笔记网页与 GitHub Pages 项目的静态知识库导航。";
+  }
+  if (starred) return "已收藏的开源项目，可前往源码仓库查看完整介绍与使用方式。";
+  if (project.fork) return "从上游同步的 Fork 项目，可前往源码仓库查看来源与完整说明。";
+  if (project.hasPages) return `已通过 GitHub Pages 发布的 ${project.language || "Web"} 项目，可直接在线查看。`;
+  return `${project.language || "公开"}项目，详细功能说明可在源码仓库中继续补充。`;
 }
 
 function renderStats() {
@@ -789,6 +856,11 @@ function validateProjectPayload(payload) {
     });
     if (!safeHref(project.repoUrl || "")) errors.push(`projects[${index}].repoUrl 无效`);
     if (project.pagesUrl && !safeHref(project.pagesUrl)) errors.push(`projects[${index}].pagesUrl 无效`);
+    if (project.hasPages) {
+      const expectedPagesUrl = deriveProjectPagesUrl(project, payload.owner);
+      if (!expectedPagesUrl) errors.push(`projects[${index}] 无法生成 Pages 地址`);
+      if (project.pagesUrl !== expectedPagesUrl) errors.push(`projects[${index}].pagesUrl 必须与仓库名对应`);
+    }
   });
   if (!Array.isArray(payload.starred)) errors.push("项目索引缺少 starred 数组");
   return errors;
