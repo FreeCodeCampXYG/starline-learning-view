@@ -4,9 +4,15 @@ const expectedGitHub = {
   owned: githubPayload.projects.filter((project) => !project.fork).length,
   forks: githubPayload.projects.filter((project) => project.fork).length,
   pages: githubPayload.projects.filter((project) => !project.fork && project.hasPages).length,
-  commits: githubPayload.projects.reduce((total, project) => total + (Number.isInteger(project.commitCount) ? project.commitCount : 0), 0),
+  commits: Number.isInteger(githubPayload.summary?.recentMatchedDefaultBranchCommits)
+    ? githubPayload.summary.recentMatchedDefaultBranchCommits
+    : githubPayload.projects.reduce((total, project) => total + (Number.isInteger(project.commitCount) ? project.commitCount : 0), 0),
   starred: githubPayload.starred.length
 };
+const projectsWithRecentCommits = githubPayload.projects
+  .filter((project) => !project.fork && Number.isInteger(project.recentCommitCount) && project.recentCommitCount > 0)
+  .sort((a, b) => b.recentCommitCount - a.recentCommitCount);
+const expectedPriorityProject = projectsWithRecentCommits[0]?.name || "";
 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -52,6 +58,12 @@ async function evaluate(expression) {
 }
 
 await command("Runtime.enable");
+await command("Emulation.setDeviceMetricsOverride", {
+  width: 1440,
+  height: 1100,
+  deviceScaleFactor: 1,
+  mobile: false
+});
 await evaluate("localStorage.clear(); location.replace('http://127.0.0.1:8765/?theme=atelier'); true");
 await delay(700);
 
@@ -70,14 +82,33 @@ const usability = await evaluate(`({
   themesHidden: !document.querySelector('#appearanceDialog').open,
   smartViews: document.querySelectorAll('[data-smart-view]').length,
   focusCards: document.querySelectorAll('.focus-row > article').length,
+  readmeLinks: document.querySelectorAll('.readme-link').length,
+  projectSpotlightVisible: !document.querySelector('#projectSpotlight').hidden,
+  projectReadmeSteps: document.querySelectorAll('#projectSpotlight .project-readme-guide li').length,
+  cardReadmeLinks: document.querySelectorAll('.project-card a[href$="#readme"]').length,
+  projectBeforeLibrary: Boolean(document.querySelector('.project-section').compareDocumentPosition(document.querySelector('.library-section')) & Node.DOCUMENT_POSITION_FOLLOWING),
   defaultList: document.querySelector('#notesGrid').classList.contains('is-list'),
   exactTotal: document.querySelector('#statTotal').textContent.trim()
 })`);
 assert(usability.themesHidden, "外观选择不应占据首屏");
 assert(usability.smartViews === 4, "快捷入口数量错误");
 assert(usability.focusCards === 2, "最近更新与维护提醒未渲染");
+assert(usability.readmeLinks === 4, "首页 README 导览入口未完整渲染");
+assert(usability.projectSpotlightVisible, "自建项目默认应显示当前项目介绍");
+assert(usability.projectReadmeSteps === 4, "当前项目 README 引导步骤未完整渲染");
+assert(usability.cardReadmeLinks > 0, "项目卡片缺少 README 追溯入口");
+assert(usability.projectBeforeLibrary, "GitHub 项目区应位于本地笔记区之前");
 assert(usability.defaultList, "文本型笔记应默认使用列表视图");
 assert(usability.exactTotal === "10", "统计数字应立即显示真实值");
+await evaluate("document.querySelector('#openSidebar').click(); true");
+await delay(80);
+assert(await evaluate("document.body.classList.contains('sidebar-collapsed')"), "桌面目录开关未收起侧栏");
+await evaluate("document.querySelector('#openSidebar').click(); true");
+assert(await evaluate("!document.body.classList.contains('sidebar-collapsed')"), "桌面目录开关未恢复侧栏");
+await evaluate("document.querySelector('[data-readme-action=\"project-map\"]').click(); true");
+await delay(120);
+assert(await evaluate("document.querySelector('[data-project-filter=\"map\"]').getAttribute('aria-selected')") === "true", "首页 README 项目关系图入口未切换到对应视图");
+await evaluate("document.querySelector('[data-project-filter=\"owned\"]').click(); true");
 
 await evaluate("document.querySelector('[data-view=\"map\"]').click(); true");
 await delay(120);
@@ -111,13 +142,27 @@ const githubOverview = await evaluate(`({
   forks: document.querySelector('#projectForkCount').textContent.trim(),
   commits: document.querySelector('#projectCommitCount').textContent.trim(),
   starred: document.querySelector('#projectStarredCount').textContent.trim(),
+  freshness: document.querySelector('#projectFreshness').textContent.trim(),
+  freshnessClass: document.querySelector('#projectFreshness').className,
   defaultCards: document.querySelectorAll('.project-card').length
 })`);
 assert(githubOverview.owned === String(expectedGitHub.owned), `自建项目统计错误：${githubOverview.owned}`);
 assert(githubOverview.forks === String(expectedGitHub.forks), `Fork 项目统计错误：${githubOverview.forks}`);
 assert(githubOverview.commits === String(expectedGitHub.commits), `本人提交统计错误：${githubOverview.commits}`);
 assert(githubOverview.starred === String(expectedGitHub.starred), `Star 统计错误：${githubOverview.starred}`);
+assert(githubOverview.freshness && /is-(fresh|current|stale)/.test(githubOverview.freshnessClass), "项目索引缺少可判断的新鲜度状态");
 assert(githubOverview.defaultCards === expectedGitHub.owned, "默认应展示全部自建项目");
+const maintenance = await evaluate(`({
+  visible: !document.querySelector('#projectMaintenanceFocus').hidden,
+  items: document.querySelectorAll('.project-maintenance-item').length,
+  priorityNames: [...document.querySelectorAll('.project-maintenance-item strong')].map(node => node.textContent.trim()),
+  highlightedCards: document.querySelectorAll('.project-card[class*="is-maintenance-"]').length,
+  explanation: document.querySelector('#projectMaintenanceSummary').textContent.trim()
+})`);
+assert(maintenance.visible && maintenance.items > 0, "维护焦点未从公开索引生成");
+assert(maintenance.highlightedCards > 0, "维护项目卡片缺少突出状态");
+assert(!expectedPriorityProject || maintenance.priorityNames.includes(expectedPriorityProject), "近 30 天提交最多的项目未进入近期优先区");
+assert(maintenance.explanation.includes("每 6 小时刷新"), "近期优先区缺少自动刷新说明");
 
 await evaluate("document.querySelector('[data-project-filter=\"pages\"]').click(); true");
 assert(await evaluate("document.querySelectorAll('.project-card').length") === expectedGitHub.pages, "Pages 项目筛选未生效");
@@ -136,6 +181,30 @@ await evaluate("document.querySelector('[data-project-filter=\"forks\"]').click(
 assert(await evaluate("document.querySelectorAll('.project-card').length") === expectedGitHub.forks, "Fork 项目筛选未生效");
 await evaluate("document.querySelector('[data-project-filter=\"starred\"]').click(); true");
 assert(await evaluate("document.querySelectorAll('.project-card').length") === expectedGitHub.starred, "Star 项目筛选未生效");
+await evaluate("document.querySelector('[data-project-filter=\"map\"]').click(); true");
+await delay(60);
+const projectMapState = await evaluate(`({
+  selected: document.querySelector('[data-project-filter="map"]').getAttribute('aria-selected'),
+  labelledBy: document.querySelector('#projectPanel').getAttribute('aria-labelledby'),
+  visible: document.querySelector('#projectRelationMap').checkVisibility(),
+  cardsHidden: !document.querySelector('#projectGrid').checkVisibility(),
+  repositories: document.querySelectorAll('.project-map-node[data-project-map-kind="repository"]').length,
+  explicitEdges: document.querySelectorAll('.project-map-edge.explicit').length
+})`);
+assert(projectMapState.selected === "true" && projectMapState.labelledBy === "projectTabMap", "项目关系图标签状态不完整");
+assert(projectMapState.visible && projectMapState.cardsHidden, "项目关系图与卡片不应同时显示");
+assert(projectMapState.repositories === expectedGitHub.owned, "项目关系图默认范围应为全部自建项目");
+assert(projectMapState.explicitEdges > 0, "项目关系图未渲染人工确认关系");
+await evaluate(`(() => {
+  const input = document.querySelector('#projectMapSearch');
+  input.value = 'Python';
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  return true;
+})()`);
+assert(await evaluate("document.querySelectorAll('.project-map-node.search-match').length") > 0, "项目关系图搜索未标记结果");
+assert(await evaluate("document.querySelectorAll('.project-map-node.search-context').length") > 0, "项目关系图搜索未保留相邻上下文");
+await evaluate("document.querySelector('.project-map-node.search-match').dispatchEvent(new MouseEvent('click', { bubbles: true })); true");
+assert(await evaluate("document.querySelector('#projectMapDetail').textContent.trim().length") > 20, "项目关系图节点详情未更新");
 await evaluate("document.querySelector('[data-project-filter=\"owned\"]').click(); true");
 
 await evaluate("document.querySelector('[data-category=\"AI/Skill\\ 创建\"]').click(); true");
@@ -208,13 +277,25 @@ assert(mobile.fits, "390px 视口出现页面级横向溢出");
 assert(mobile.menuVisible, "移动端分类入口不可见");
 assert(mobile.floatingCreate, "移动端新建入口未转换为悬浮按钮");
 assert(mobile.headingFits && mobile.mainFits, "移动端主内容超出可视宽度");
+await evaluate("document.querySelector('#openSidebar').click(); true");
+await delay(320);
+const drawer = await evaluate("({open: document.body.classList.contains('sidebar-open'), left: document.querySelector('#sidebar').getBoundingClientRect().left, right: document.querySelector('#sidebar').getBoundingClientRect().right, viewport: document.documentElement.clientWidth})");
+assert(drawer.open, "移动端目录未以抽屉方式打开");
+assert(drawer.left >= -1 && drawer.right <= drawer.viewport + 1, `移动端目录抽屉超出可视宽度：${JSON.stringify(drawer)}`);
+await evaluate("document.querySelector('#closeSidebar').click(); true");
+assert(await evaluate("!document.body.classList.contains('sidebar-open')"), "移动端目录抽屉未关闭");
 
 console.log(JSON.stringify({
   ok: true,
   checks: [
     "data rendering",
     "task-first home hierarchy",
+    "homepage README routes",
+    "GitHub-first project ordering",
+    "project introduction and README reading path",
+    "desktop collapsible sidebar and mobile drawer",
     "GitHub owned/fork/commit/star overview",
+    "maintenance focus and highlighted projects",
     "GitHub project scope filters",
     "progressive appearance settings",
     "nested category filter",

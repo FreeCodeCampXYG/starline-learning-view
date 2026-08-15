@@ -27,7 +27,7 @@
     </label>
 
     <div class="top-actions">
-      <button class="button button-quiet mobile-menu" id="openSidebar" type="button" aria-label="打开分类导航">分类</button>
+      <button class="button button-quiet mobile-menu" id="openSidebar" type="button" aria-label="打开或收起分类导航" aria-controls="sidebar" aria-expanded="true">目录</button>
       <button class="button button-quiet appearance-button" id="appearanceButton" type="button" aria-label="打开外观设置">外观</button>
       <details class="action-menu">
         <summary class="button button-quiet" aria-label="打开更多操作">•••</summary>
@@ -45,7 +45,10 @@
     <aside class="sidebar" id="sidebar" aria-label="笔记分类与标签">
       <div class="sidebar-mobile-head">
         <strong>浏览目录</strong>
-        <button class="icon-button" id="closeSidebar" type="button" aria-label="关闭分类导航">×</button>
+        <div class="sidebar-head-actions">
+          <button class="icon-button sidebar-collapse-button" id="collapseSidebar" type="button" aria-label="收起分类导航" title="收起分类导航">←</button>
+          <button class="icon-button" id="closeSidebar" type="button" aria-label="关闭分类导航" title="关闭分类导航">×</button>
+        </div>
       </div>
 
       <nav class="side-section smart-nav" aria-labelledby="smartHeading">
@@ -90,24 +93,159 @@
       <section class="page-heading">
         <div>
           <div class="eyebrow"><span class="pulse-dot"></span><span id="dataModeText">仓库目录</span></div>
-          <h1>学习笔记</h1>
-          <p>整理、查找并维护你已经发布的知识页面。</p>
+          <h1>学习与项目</h1>
+          <p>先追溯 GitHub 公开资产，再进入本地学习笔记完成阅读与维护。</p>
         </div>
         <div class="heading-actions">
-          <button class="button button-secondary" id="featuredButton" type="button">查看精选</button>
+          <a class="button button-primary" href="#projectHeading">查看 GitHub 项目 <span aria-hidden="true">↘</span></a>
         </div>
       </section>
 
-      <section class="stats-grid" aria-label="目录统计">
-        <article class="stat-card"><span>全部</span><strong id="statTotal">0</strong><small>篇笔记</small></article>
-        <article class="stat-card"><span>已发布</span><strong id="statPublished">0</strong><small>可访问</small></article>
-        <article class="stat-card"><span>需处理</span><strong id="statUnchecked">0</strong><small>链接或草稿</small></article>
-        <article class="stat-card"><span>分类</span><strong id="statCategories">0</strong><small>个知识域</small></article>
+      <section class="project-section" aria-labelledby="projectHeading">
+        <div class="library-head project-head">
+          <div>
+            <span class="eyebrow">GitHub 自动发现 · 公开可追溯</span>
+            <h2 id="projectHeading">GitHub 公开项目</h2>
+            <div class="project-sync-line"><p id="projectSyncText">正在读取 Actions 生成的项目索引…</p><a class="project-freshness" id="projectFreshness" href="https://github.com/FreeCodeCampXYG/starline-learning-view/actions" target="_blank" rel="noopener noreferrer">检查数据时间</a></div>
+          </div>
+          <div class="result-meta"><strong id="projectResultCount">0</strong><span>个项目</span></div>
+        </div>
+
+        <div class="project-trace-note" role="note">
+          <span class="project-trace-mark" aria-hidden="true">↗</span>
+          <div><strong>先追溯公开资产，再阅读本地笔记</strong><p>这里的源码、Pages 和 README 均直接指向 GitHub；本地笔记区只负责整理学习内容，不再承担项目入口。</p></div>
+          <a href="https://github.com/FreeCodeCampXYG?tab=repositories" target="_blank" rel="noopener noreferrer">查看账号仓库 ↗</a>
+        </div>
+
+        <section class="project-spotlight" id="projectSpotlight" aria-labelledby="projectSpotlightTitle" hidden></section>
+
+        <div class="project-summary" aria-label="GitHub 公开项目概览">
+          <article><span>自建项目</span><strong id="projectOwnedCount">0</strong><small>非 Fork 仓库</small></article>
+          <article><span>Fork 项目</span><strong id="projectForkCount">0</strong><small>保留上游来源</small></article>
+          <article><span id="projectCommitLabel">近期提交</span><strong id="projectCommitCount">0</strong><small id="projectCommitHint">近 30 天匹配</small></article>
+          <article><span>我的 Star</span><strong id="projectStarredCount">0</strong><small>公开收藏</small></article>
+        </div>
+
+        <section class="project-maintenance-focus" id="projectMaintenanceFocus" aria-labelledby="projectMaintenanceTitle" hidden>
+          <div class="project-maintenance-intro">
+            <span class="eyebrow">AUTO PRIORITY / 自动更新</span>
+            <h3 id="projectMaintenanceTitle">近期优先项目</h3>
+            <p id="projectMaintenanceSummary">正在根据近期推送和本人提交计算优先级。</p>
+          </div>
+          <div class="project-maintenance-list" id="projectMaintenanceList" aria-live="polite"></div>
+        </section>
+
+        <div class="project-toolbar">
+          <div class="project-filter-tabs" id="projectFilterTabs" role="tablist" aria-label="GitHub 项目范围">
+            <span class="project-tab-indicator" id="projectTabIndicator" aria-hidden="true"></span>
+            <button class="project-tab is-active" id="projectTabOwned" type="button" role="tab" aria-selected="true" aria-controls="projectPanel" data-project-filter="owned">自建项目</button>
+            <button class="project-tab" id="projectTabPages" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="pages">已部署 Pages</button>
+            <button class="project-tab" id="projectTabForks" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="forks">Fork 项目</button>
+            <button class="project-tab" id="projectTabStarred" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="starred">我的 Star</button>
+            <button class="project-tab" id="projectTabMap" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="map">项目关系图</button>
+          </div>
+          <a class="project-profile-link" href="https://github.com/FreeCodeCampXYG?tab=repositories" target="_blank" rel="noopener noreferrer">GitHub 全部仓库 ↗</a>
+        </div>
+
+        <div class="project-panel" id="projectPanel" role="tabpanel" aria-labelledby="projectTabOwned" tabindex="0">
+          <p class="commit-scope" id="commitScope">提交数正在读取；统计口径为 GitHub 账号身份匹配的公开仓库默认分支。</p>
+
+          <div class="project-grid" id="projectGrid" aria-live="polite"></div>
+          <div class="project-empty" id="projectEmpty" hidden>
+            <strong>没有匹配的公开项目</strong>
+            <span>可切换项目范围，或清除顶部搜索词。</span>
+          </div>
+
+          <section class="project-relation-map" id="projectRelationMap" aria-labelledby="projectRelationMapTitle" hidden>
+            <div class="project-map-heading knowledge-map-heading">
+              <div>
+                <span class="eyebrow">PUBLIC REPOSITORY GRAPH / 公开资产关系</span>
+                <h3 id="projectRelationMapTitle">项目关系图</h3>
+                <p id="projectMapSummary">正在从公开项目索引整理关系…</p>
+              </div>
+              <div class="project-map-controls knowledge-map-controls" aria-label="项目关系图控制">
+                <label class="map-control map-search-control" for="projectMapSearch"><span>搜索项目关系</span><input id="projectMapSearch" type="search" placeholder="项目、语言或上游" autocomplete="off"></label>
+                <label class="map-control" for="projectMapScope"><span>探索范围</span><select id="projectMapScope"><option value="owned">自建项目</option><option value="forks">Fork 与上游</option><option value="starred">我的 Star</option><option value="all">完整公开网络</option></select></label>
+                <div class="map-control-actions" aria-label="项目图布局控制">
+                  <button id="projectMapFit" type="button">适合</button>
+                  <button id="projectMapReset" type="button">重置</button>
+                </div>
+              </div>
+            </div>
+            <p class="project-map-status knowledge-map-status" id="projectMapStatus" role="status" aria-live="polite">关系来自 Actions 最近一次生成的公开索引。</p>
+            <div class="project-map-legend knowledge-map-legend" aria-label="项目关系图图例">
+              <span data-project-map-kind="account">账号 · 六边形</span><span data-project-map-kind="repository">仓库 · 方形</span><span data-project-map-kind="language">语言 · 圆形</span><span data-project-map-kind="upstream">上游 · 菱形</span><span data-project-map-kind="capability">能力 · 圆形</span><span class="map-edge-key explicit">人工确认关系</span><span class="map-edge-key derived">索引字段关系</span>
+            </div>
+            <div class="project-map-workspace knowledge-map-workspace">
+              <div class="project-map-stage knowledge-map-stage" id="projectMapStage">
+                <svg id="projectMapGraph" viewBox="0 0 960 560" role="group" aria-label="可拖拽和缩放的公开项目关系图。选择节点可查看关系来源。">
+                  <defs><marker id="projectMapArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"></path></marker></defs>
+                  <g id="projectMapViewport"><g id="projectMapEdges"></g><g id="projectMapNodes"></g></g>
+                </svg>
+                <p class="project-map-empty" id="projectMapEmpty" hidden>当前范围没有可显示的公开项目关系。</p>
+              </div>
+              <aside class="project-map-inspector knowledge-map-inspector" aria-labelledby="projectMapDetailTitle">
+                <div class="map-inspector-heading"><h4 id="projectMapDetailTitle">节点详情</h4><span id="projectMapVisibleCount">0</span></div>
+                <div class="project-map-detail knowledge-map-detail" id="projectMapDetail">选择节点，查看仓库、技术栈、Pages、Fork 上游或人工确认关系。</div>
+                <div class="map-accessible-heading"><h4>可访问节点</h4><span>支持键盘定位</span></div>
+                <div class="project-map-node-list knowledge-map-node-list" id="projectMapNodeList" role="list"></div>
+              </aside>
+            </div>
+          </section>
+        </div>
       </section>
 
-      <section class="focus-row" aria-label="继续阅读与维护提醒">
-        <article class="continue-card" id="continueCard"></article>
-        <article class="attention-card" id="attentionCard" role="button" tabindex="0" aria-label="查看需要处理的笔记"></article>
+      <section class="readme-strip" aria-labelledby="readmeHeading">
+        <div class="readme-strip-heading">
+          <span class="eyebrow">START HERE / 首页导览</span>
+          <h2 id="readmeHeading">先看这里，再开始浏览</h2>
+          <p>这是公开的学习笔记目录：先从 GitHub 项目追溯源码与发布页面，再用笔记区整理学习内容。</p>
+        </div>
+        <div class="readme-link-list" aria-label="首页重要链接">
+          <button class="readme-link" type="button" data-readme-action="notes">
+            <span class="readme-link-index">01</span>
+            <span><strong>阅读笔记</strong><small>按领域、标签和更新时间找到已发布内容。</small></span>
+            <span class="readme-link-arrow" aria-hidden="true">↘</span>
+          </button>
+          <button class="readme-link" type="button" data-readme-action="knowledge-map">
+            <span class="readme-link-index">02</span>
+            <span><strong>知识地图</strong><small>查看笔记、分类、标签和项目之间的一跳关系。</small></span>
+            <span class="readme-link-arrow" aria-hidden="true">↘</span>
+          </button>
+          <button class="readme-link" type="button" data-readme-action="project-map">
+            <span class="readme-link-index">03</span>
+            <span><strong>项目关系图</strong><small>沿着语言、Pages、Fork 上游和维护状态探索公开资产。</small></span>
+            <span class="readme-link-arrow" aria-hidden="true">↘</span>
+          </button>
+          <a class="readme-link" href="https://github.com/FreeCodeCampXYG/starline-learning-view#readme" target="_blank" rel="noopener noreferrer">
+            <span class="readme-link-index">04</span>
+            <span><strong>GitHub README</strong><small>查看数据口径、维护流程、Actions 与部署说明。</small></span>
+            <span class="readme-link-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div class="readme-strip-footer">
+          <span>公开 Pages</span><a href="https://freecodecampxyg.github.io/starline-learning-view/" target="_blank" rel="noopener noreferrer">freecodecampxyg.github.io/starline-learning-view/ ↗</a>
+          <span>源码与 Actions</span><a href="https://github.com/FreeCodeCampXYG/starline-learning-view/actions" target="_blank" rel="noopener noreferrer">GitHub Actions ↗</a>
+          <span>公开数据</span><a href="data/notes.json" target="_blank" rel="noopener noreferrer">笔记 JSON ↗</a><a href="data/github-projects.json" target="_blank" rel="noopener noreferrer">项目索引 JSON ↗</a>
+          <span class="readme-strip-note">私有仓库不会进入公开索引；浏览器不会保存 GitHub Token。</span>
+        </div>
+      </section>
+
+      <section class="local-overview" aria-labelledby="localOverviewHeading">
+        <div class="local-overview-head">
+          <div><span class="eyebrow">LOCAL NOTE INDEX / 本地内容</span><h2 id="localOverviewHeading">学习笔记概览</h2><p>以下内容来自仓库中的 <code>data/notes.json</code> 和浏览器本地草稿；项目追溯请以上方 GitHub 区为准。</p></div>
+          <div class="local-library-actions"><button class="button button-secondary" id="featuredButton" type="button">查看精选</button></div>
+        </div>
+        <section class="stats-grid" aria-label="本地笔记统计">
+          <article class="stat-card"><span>全部</span><strong id="statTotal">0</strong><small>篇笔记</small></article>
+          <article class="stat-card"><span>已发布</span><strong id="statPublished">0</strong><small>可访问</small></article>
+          <article class="stat-card"><span>需处理</span><strong id="statUnchecked">0</strong><small>链接或草稿</small></article>
+          <article class="stat-card"><span>分类</span><strong id="statCategories">0</strong><small>个知识域</small></article>
+        </section>
+        <section class="focus-row" aria-label="继续阅读与维护提醒">
+          <article class="continue-card" id="continueCard"></article>
+          <article class="attention-card" id="attentionCard" role="button" tabindex="0" aria-label="查看需要处理的笔记"></article>
+        </section>
       </section>
 
       <section class="library-section" aria-labelledby="libraryHeading">
@@ -192,44 +330,6 @@
         </div>
       </section>
 
-      <section class="project-section" aria-labelledby="projectHeading">
-        <div class="library-head project-head">
-          <div>
-            <span class="eyebrow">GitHub 自动发现</span>
-            <h2 id="projectHeading">公开项目</h2>
-            <p id="projectSyncText">正在读取 Actions 生成的项目索引…</p>
-          </div>
-          <div class="result-meta"><strong id="projectResultCount">0</strong><span>个项目</span></div>
-        </div>
-
-        <div class="project-summary" aria-label="GitHub 公开项目概览">
-          <article><span>自建项目</span><strong id="projectOwnedCount">0</strong><small>非 Fork 仓库</small></article>
-          <article><span>Fork 项目</span><strong id="projectForkCount">0</strong><small>保留上游来源</small></article>
-          <article><span>本人提交</span><strong id="projectCommitCount">0</strong><small>默认分支匹配</small></article>
-          <article><span>我的 Star</span><strong id="projectStarredCount">0</strong><small>公开收藏</small></article>
-        </div>
-
-        <div class="project-toolbar">
-          <div class="project-filter-tabs" id="projectFilterTabs" role="tablist" aria-label="GitHub 项目范围">
-            <span class="project-tab-indicator" id="projectTabIndicator" aria-hidden="true"></span>
-            <button class="project-tab is-active" id="projectTabOwned" type="button" role="tab" aria-selected="true" aria-controls="projectPanel" data-project-filter="owned">自建项目</button>
-            <button class="project-tab" id="projectTabPages" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="pages">已部署 Pages</button>
-            <button class="project-tab" id="projectTabForks" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="forks">Fork 项目</button>
-            <button class="project-tab" id="projectTabStarred" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="starred">我的 Star</button>
-          </div>
-          <a class="project-profile-link" href="https://github.com/FreeCodeCampXYG?tab=repositories" target="_blank" rel="noopener noreferrer">GitHub 全部仓库 ↗</a>
-        </div>
-
-        <div class="project-panel" id="projectPanel" role="tabpanel" aria-labelledby="projectTabOwned" tabindex="0">
-          <p class="commit-scope" id="commitScope">提交数正在读取；统计口径为 GitHub 账号身份匹配的公开仓库默认分支。</p>
-
-          <div class="project-grid" id="projectGrid" aria-live="polite"></div>
-          <div class="project-empty" id="projectEmpty" hidden>
-            <strong>没有匹配的公开项目</strong>
-            <span>可切换项目范围，或清除顶部搜索词。</span>
-          </div>
-        </div>
-      </section>
     </main>
   </div>
 
@@ -286,6 +386,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="knowledge-map.js"></script>
+  <script src="project-map.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

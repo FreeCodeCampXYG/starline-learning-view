@@ -127,6 +127,38 @@ def default_branch_commit_count(owner: str, repository_name: str, token: str | N
     return last_page if last_page is not None else len(payload)
 
 
+def recent_default_branch_activity(
+    owner: str,
+    repository_name: str,
+    since: str,
+    token: str | None = None,
+) -> tuple[int | None, str | None]:
+    """统计时间窗口内的本人默认分支提交，并返回最近一次匹配提交时间。"""
+    query = urllib.parse.urlencode({"author": owner, "since": since, "per_page": 1})
+    url = f"{API_ROOT}/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repository_name)}/commits?{query}"
+    try:
+        payload, headers = github_request_with_headers(url, token)
+    except RuntimeError as exc:
+        if "HTTP 409" in str(exc):
+            return 0, None
+        return None, None
+    if not isinstance(payload, list):
+        return None, None
+    last_page = last_page_from_link(headers.get("link", ""))
+    commit_count = last_page if last_page is not None else len(payload)
+    latest_commit_at = None
+    if payload and isinstance(payload[0], dict):
+        commit = payload[0].get("commit")
+        if isinstance(commit, dict):
+            author = commit.get("author")
+            committer = commit.get("committer")
+            if isinstance(author, dict):
+                latest_commit_at = str(author.get("date") or "").strip() or None
+            if latest_commit_at is None and isinstance(committer, dict):
+                latest_commit_at = str(committer.get("date") or "").strip() or None
+    return commit_count, latest_commit_at
+
+
 def fork_upstream(repository: dict[str, Any], token: str | None = None) -> dict[str, str] | None:
     """读取 Fork 的直接上游仓库；API 失败时保留未知状态。"""
     if not repository.get("fork"):
@@ -172,6 +204,8 @@ def normalize_repository(
     owner: str,
     *,
     commit_count: int | None = None,
+    recent_commit_count: int | None = None,
+    last_matched_commit_at: str | None = None,
     upstream: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """裁剪 GitHub 响应，只保留公开网页所需且稳定的字段。"""
@@ -196,6 +230,8 @@ def normalize_repository(
         "forks": int(repository.get("forks_count") or 0),
         "defaultBranch": str(repository.get("default_branch") or "main"),
         "commitCount": commit_count,
+        "recentCommitCount": recent_commit_count,
+        "lastMatchedCommitAt": last_matched_commit_at,
         "commitScope": "GitHub 账号身份匹配的默认分支提交",
         "upstream": upstream,
         "updatedAt": str(repository.get("updated_at") or ""),
@@ -228,23 +264,31 @@ def build_payload(
     generated_at: str | None = None,
     *,
     commit_counts: dict[str, int | None] | None = None,
+    recent_commit_counts: dict[str, int | None] | None = None,
+    last_matched_commit_at: dict[str, str | None] | None = None,
     upstreams: dict[str, dict[str, str] | None] | None = None,
     starred_repositories: list[dict[str, Any]] | None = None,
     excluded_repositories: int = 0,
+    activity_window_days: int = 30,
 ) -> dict[str, Any]:
     """构造可被前端直接读取的稳定项目索引。"""
     commit_counts = commit_counts or {}
+    recent_commit_counts = recent_commit_counts or {}
+    last_matched_commit_at = last_matched_commit_at or {}
     upstreams = upstreams or {}
     projects = [normalize_repository(
         repository,
         owner,
         commit_count=commit_counts.get(str(repository.get("name") or "")),
+        recent_commit_count=recent_commit_counts.get(str(repository.get("name") or "")),
+        last_matched_commit_at=last_matched_commit_at.get(str(repository.get("name") or "")),
         upstream=upstreams.get(str(repository.get("name") or "")),
     ) for repository in repositories]
     projects.sort(key=lambda item: (item["updatedAt"], item["name"].casefold()), reverse=True)
     starred = [normalize_starred(repository) for repository in (starred_repositories or [])]
     starred.sort(key=lambda item: (item["updatedAt"], item["fullName"].casefold()), reverse=True)
     known_commit_total = sum(project["commitCount"] for project in projects if isinstance(project["commitCount"], int))
+    recent_commit_total = sum(project["recentCommitCount"] for project in projects if isinstance(project["recentCommitCount"], int))
     unknown_commit_repositories = sum(project["commitCount"] is None for project in projects)
     return {
         "schemaVersion": "1.0.0",
@@ -252,12 +296,14 @@ def build_payload(
         "generatedAt": generated_at or dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "source": f"https://api.github.com/users/{owner}/repos",
         "commitScope": "按 GitHub 账号身份匹配每个公开仓库默认分支上的提交；不含其他分支、未推送提交或未绑定身份的邮箱提交。",
+        "activityWindowDays": activity_window_days,
         "summary": {
             "repositories": len(projects),
             "owned": sum(not project["fork"] for project in projects),
             "forked": sum(project["fork"] for project in projects),
             "pages": sum(project["hasPages"] for project in projects),
             "matchedDefaultBranchCommits": known_commit_total,
+            "recentMatchedDefaultBranchCommits": recent_commit_total,
             "unknownCommitRepositories": unknown_commit_repositories,
             "starred": len(starred),
             "excludedRepositories": excluded_repositories,
@@ -286,6 +332,19 @@ def main() -> None:
         str(repository.get("name") or ""): default_branch_commit_count(args.owner, str(repository.get("name") or ""), token)
         for repository in repositories
     }
+    activity_window_days = 30
+    activity_since = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=activity_window_days)).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    recent_activity = {
+        str(repository.get("name") or ""): recent_default_branch_activity(
+            args.owner,
+            str(repository.get("name") or ""),
+            activity_since,
+            token,
+        )
+        for repository in repositories
+    }
+    recent_commit_counts = {name: activity[0] for name, activity in recent_activity.items()}
+    last_matched_commit_at = {name: activity[1] for name, activity in recent_activity.items()}
     upstreams = {
         str(repository.get("name") or ""): fork_upstream(repository, token)
         for repository in repositories if repository.get("fork")
@@ -298,9 +357,12 @@ def main() -> None:
         repositories,
         args.owner,
         commit_counts=commit_counts,
+        recent_commit_counts=recent_commit_counts,
+        last_matched_commit_at=last_matched_commit_at,
         upstreams=upstreams,
         starred_repositories=starred_repositories,
         excluded_repositories=excluded_count,
+        activity_window_days=activity_window_days,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

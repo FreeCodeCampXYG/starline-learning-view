@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
   schedule:
-    # GitHub 使用 UTC；北京时间每天约 10:20 自动刷新公开项目索引。
-    - cron: "20 2 * * *"
+    # GitHub 使用 UTC；每 6 小时自动刷新一次，避开整点高峰。
+    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -40,13 +40,17 @@ jobs:
           test -f styles.css
           test -f app.js
           test -f knowledge-map.js
+          test -f project-map.js
           test -f data/notes.json
           test -f data/github-projects.json
+          test -f data/project-guides.json
           test -f data/relations.json
           node --check app.js
           node --check knowledge-map.js
+          node --check project-map.js
           python -m json.tool data/notes.json > /dev/null
           python -m json.tool data/github-projects.json > /dev/null
+          python -m json.tool data/project-guides.json > /dev/null
           python -m json.tool data/relations.json > /dev/null
           python -m unittest discover -s tests -p "test_*.py" -v
 
@@ -55,9 +59,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site/data
-          cp index.html styles.css app.js knowledge-map.js _site/
+          cp index.html styles.css app.js knowledge-map.js project-map.js _site/
           cp data/notes.json _site/data/
           cp data/github-projects.json _site/data/
+          cp data/project-guides.json _site/data/
           cp data/relations.json _site/data/
           touch _site/.nojekyll
 

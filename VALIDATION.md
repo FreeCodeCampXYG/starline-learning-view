@@ -1,23 +1,35 @@
 # 验证记录
 
-日期：2026-08-13
+日期：2026-08-15
 
 ## 自动检查
 
 - `node --check app.js`：通过。
-- `node --check knowledge-map.js` 与 `python -m json.tool data/relations.json`：通过。
-- `python -m unittest discover -s tests -p "test_*.py" -v`：12 项通过。
+- `node --check knowledge-map.js`、`node --check project-map.js` 与 `python -m json.tool data/relations.json`：通过。
+- `python -m unittest discover -s tests -p "test_*.py" -v`：16 项通过。
+- 项目介绍 JSON：`data/project-guides.json` 可解析，当前项目包含三项能力说明和四个指向真实 README 章节的引导链接；Actions 会校验并发布该文件。
 - 笔记 JSON 契约：通过，10 篇数据无字段、枚举、ID 或 URL 错误。
-- HTML/CSS 安全静态检查：108 个 HTML ID 无重复；5 套主题完整；未发现 GitHub Token 前缀；静态外链包含安全属性。
+- HTML/CSS 安全静态检查：135 个 HTML ID 无重复；5 套主题完整；未发现 GitHub Token 前缀；静态外链包含安全属性。
 - GitHub Pages Actions：工作流采用官方 `configure-pages`、`upload-pages-artifact` 和 `deploy-pages`，使用最小权限并只发布站点必需文件。
-- GitHub 项目索引：Actions 每天定时读取账号公开仓库，生成脱敏字段集；前端区分自建项目、已启用 Pages、Fork 项目和公开 Star，并说明默认分支提交统计口径。
+- GitHub 项目索引：Actions 配置为每 6 小时读取账号公开仓库，生成脱敏字段集；索引增加近 30 天本人提交数和最近匹配提交时间，前端继续区分自建项目、Pages、Fork 和公开 Star。
 - 知识地图：从笔记、分类、标签与公开项目数据构图；显式关系单独维护并验证端点存在，支持搜索保留一跳上下文、拖拽、缩放、节点详情和可访问节点列表。
-- 真实 Chromium 浏览器烟雾测试：通过 Playwright 调用本机 ChromeGo Chromium，完成以下交互回归。
+- 项目关系图：GitHub 项目标签组可从 Actions 公开索引探索自建、Fork、Star、语言、Pages 与上游关系；不发起客户端 GitHub API 写入或凭据请求。
+- 首页 README 导览：笔记目录、知识地图、项目关系图、README、Pages 和 Actions 链接均在首屏直接可见；项目关系图入口会切换到对应标签。
+- 当前项目介绍：自建项目默认展示 `starline-learning-view` 的定位、适用对象、能力列表和 README 四步阅读路径；全部项目卡片提供 `README` 直达入口。
+- 信息架构顺序：DOM 与视觉顺序均为 GitHub 公开项目、首页导览、本地内容概览、学习笔记；项目卡片直接提供源码和 Pages 追溯入口。
+- 目录导航：桌面端收起/恢复与移动端抽屉打开/关闭均通过浏览器烟测，关闭后保留当前筛选状态。
+- 近期优先项目：近期提交数权重高于最近推送时间，只展示近 30 天真实活动，不再使用累计提交数长期置顶；项目卡片使用状态点和左侧强调线突出，不写死项目名单。
+- 索引新鲜度：页面根据 `generatedAt` 标记刚刚刷新、当天索引或同步延迟；浏览器烟测覆盖状态文本与样式。
+- 真实 Chromium 浏览器烟雾测试：通过本机 ChromeGo Chromium 的 DevTools 协议，完成以下交互回归。
   - 初始数据渲染
   - 任务优先首页层级
+  - 首页 README 导览链接与项目关系图入口
+  - 当前项目详细介绍、README 阅读路径和项目卡片 README 入口
   - 外观设置渐进式披露
   - GitHub 自建/Fork/提交/Star 概览
+  - 近 30 天提交统计、自动优先排序和索引新鲜度
   - GitHub 项目范围筛选、滑动选中层与卡片入场反馈
+  - 项目关系图自建/Fork/Star/完整范围、搜索上下文、节点详情和卡片视图恢复
   - 标签键盘左右切换、`aria-selected` 与 Tabpanel 关联
   - 5 个 Pages 入口按账号和仓库名生成，未使用无关 Homepage
   - GitHub Description 与空介绍兜底文案
@@ -31,26 +43,29 @@
   - 详情对话框
   - 390 × 844 响应式布局无页面级横向溢出
 
+## 线上与真实数据核验
+
+- 2026-08-15 读取线上 Pages 项目索引成功：`generatedAt` 为 `2026-08-15T03:08:10Z`，包含 29 个公开仓库、14 个自建项目和 7 个 Pages 项目。
+- 最近两次定时 Actions 均成功；最新核验运行是 `https://github.com/FreeCodeCampXYG/starline-learning-view/actions/runs/31860998261`。
+- 新版同步脚本通过当前 GitHub 账号完成只读实测，临时输出包含 29 个公开仓库、近 30 天匹配提交 49 次，所有仓库提交统计均有确定结果。
+- 使用该临时新索引搭建独立静态站点后，真实 Chromium 烟测通过；近 30 天提交最多的项目能自动进入前四个近期优先项目。
+
 ## 视觉检查
 
-已在 Edge 中检查：
+本轮使用本机 ChromeGo Chromium 检查 Atelier 默认工作台：
 
-- Atelier，1440 × 1100
-- Command，1440 × 1100
-- Blueprint，1440 × 1000
-- Spectrum，1440 × 1000
-- Atlas，390 × 844
+- 首页导览：1440 × 1100，首屏可见导览、链接和紧凑辅助信息。
+- 项目管理区：1440 × 1100，当前项目说明、README 四步路径、新鲜度状态、近 30 天提交统计和自动优先项目层级可读。
+- 窄屏交互：390 × 844，项目关系图和首页导览均无页面级横向溢出。
 
-1.1 版额外检查 Atelier 默认工作台：1440 × 1000 与 390 × 844；390px 视口下页面、主内容、统计区和工具栏均位于可视宽度内。
-
-本版已用真实 Chromium 生成 1440px 项目区域截图，确认标签状态、Pages 目标路径、项目介绍和卡片层级；390px 视口页面级横向溢出为 0。
+截图保存在本机临时目录 `D:\Temp\starline-learning-view-auto-priority.png`，使用实时审计索引生成，属于验证证据，不部署到生产站点。
 
 知识地图本轮另以本机 ChromeGo Chromium 验证：桌面知识主线为 24 个节点、21 条关系，项目关联范围包含 11 个公开自建项目与 9 条人工确认关系；390 × 844 窄屏默认聚焦枢纽节点，SVG 触控命中半径为 30，页面级横向溢出为 0，且未出现控制台错误。
 
-截图保存在 `.visual-checks/`，属于本地验证证据，不需要部署到生产站点。
+项目关系图本轮以本机 ChromeGo Chromium 验证：自建范围为 11 个仓库和 3 条人工确认关系，Fork 范围包含 13 个上游节点，Star 范围包含 31 个收藏，完整公开网络去重后为 55 个仓库；390 × 844 页面级横向溢出为 0，浏览器控制台无错误。
 
 ## 未验证边界
 
 - 示例笔记 URL 当前指向用户的 GitHub Pages 根地址，不是最终文章地址，需替换后重新做线上链接健康检查。
-- 本次 6 个 Pages 标准地址均返回 HTTP 200；代码推送后的新版界面仍需等待 Actions 部署完成后复核。
+- 本次验证针对本地工作区；当前改动尚未推送，代码推送后的新版界面仍需等待 Actions 部署完成后复核。
 - 页面不会测试或存储 GitHub 写凭据；正式发布必须通过 Git / PR。

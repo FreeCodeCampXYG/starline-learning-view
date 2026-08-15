@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "projects": {
+    "starline-learning-view": {
+      "label": "当前项目",
+      "title": "墨卷 · 学习笔记管理台",
+      "intro": "一个零构建依赖的 GitHub Pages 学习笔记目录与项目追溯台。它把公开仓库、Pages 发布地址、学习笔记和关系数据放在同一个可搜索的工作界面中。",
+      "audience": "适合需要维护多个学习网页、希望从公开项目追溯源码与部署入口，并持续整理学习内容的人。",
+      "capabilities": [
+        "从 Actions 生成公开 GitHub 项目索引，区分自建、Fork、Pages 和 Star。",
+        "按领域、标签、状态和更新时间浏览学习笔记，保留本地草稿编辑能力。",
+        "用知识地图和项目关系图查看笔记、技能、仓库、语言与上游项目的关系。"
+      ],
+      "readmeGuide": [
+        {
+          "label": "首页快速导览",
+          "detail": "先理解首页入口、项目卡片和维护焦点，再开始浏览。",
+          "url": "https://github.com/FreeCodeCampXYG/starline-learning-view#首页快速导览"
+        },
+        {
+          "label": "GitHub 项目自动发现",
+          "detail": "确认项目索引、Pages 地址、提交统计和隐藏仓库的口径。",
+          "url": "https://github.com/FreeCodeCampXYG/starline-learning-view#github-项目自动发现"
+        },
+        {
+          "label": "数据维护",
+          "detail": "需要新增或修改笔记时，按 JSON、导出、审核和 PR 的顺序操作。",
+          "url": "https://github.com/FreeCodeCampXYG/starline-learning-view#数据维护"
+        },
+        {
+          "label": "GitHub Pages 部署",
+          "detail": "查看 Actions 如何验证、打包并发布静态页面。",
+          "url": "https://github.com/FreeCodeCampXYG/starline-learning-view#github-pages-部署"
+        }
+      ]
+    }
+  }
+}

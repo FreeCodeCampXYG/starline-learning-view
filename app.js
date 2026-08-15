@@ -3,7 +3,8 @@
 const STORAGE = {
   data: "starline-note-library-data-v1",
   theme: "starline-note-library-theme-v1",
-  view: "starline-note-library-view-v2"
+  view: "starline-note-library-view-v2",
+  sidebar: "starline-note-library-sidebar-v1"
 };
 
 const THEME_COPY = {
@@ -39,6 +40,7 @@ const state = {
   projectPayload: null,
   projects: [],
   starredProjects: [],
+  projectGuides: {},
   relations: [],
   projectFilter: "owned",
   query: "",
@@ -64,6 +66,7 @@ async function initialize() {
   const requestedTheme = new URLSearchParams(location.search).get("theme");
   applyTheme(THEME_COPY[requestedTheme] ? requestedTheme : (readStorage(STORAGE.theme) || "atelier"));
   applyView(state.view);
+  restoreSidebarState();
 
   try {
     const response = await fetch("data/notes.json", { cache: "no-store" });
@@ -93,6 +96,14 @@ async function initialize() {
       }
     } catch { /* 项目索引是辅助数据，失败时不阻断核心笔记目录。 */ }
     try {
+      const guideResponse = await fetch("data/project-guides.json", { cache: "no-store" });
+      if (guideResponse.ok) {
+        const guidePayload = await guideResponse.json();
+        const guideErrors = validateProjectGuidesPayload(guidePayload);
+        if (!guideErrors.length) state.projectGuides = structuredCloneSafe(guidePayload.projects);
+      }
+    } catch { /* 项目介绍是辅助数据，失败时保留 GitHub 原始简介和 README 链接。 */ }
+    try {
       const relationResponse = await fetch("data/relations.json", { cache: "no-store" });
       if (relationResponse.ok) {
         const relationPayload = await relationResponse.json();
@@ -111,7 +122,7 @@ function cacheDom() {
     "statusFilter", "linkFilter", "sortFilter", "filterSummary", "notesGrid",
     "emptyState", "emptyResetButton", "resultCount", "libraryHeading", "statTotal",
     "statPublished", "statUnchecked", "statCategories", "featuredButton", "dataModeText",
-    "themeDescription", "openSidebar", "closeSidebar", "sidebarScrim", "newNoteButton",
+    "themeDescription", "openSidebar", "closeSidebar", "collapseSidebar", "sidebarScrim", "newNoteButton",
     "appearanceButton", "appearanceSidebarButton", "appearanceDialog", "closeAppearance", "continueCard", "attentionCard",
     "navTotal", "navFeatured", "navAttention", "navDraft", "navProjects", "activeFilterRow",
     "detailDialog", "detailContent", "closeDetail", "editorDialog", "closeEditor",
@@ -119,9 +130,14 @@ function cacheDom() {
     "noteSummary", "noteUrl", "noteRepoUrl", "noteCategory", "noteTags", "noteStatus",
     "noteLinkStatus", "noteMinutes", "noteFeatured", "formError", "importButton",
     "exportButton", "importInput", "resetDraftButton", "toast",
-    "projectGrid", "projectEmpty", "projectResultCount", "projectSyncText",
-    "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectStarredCount", "commitScope",
+    "projectGrid", "projectEmpty", "projectResultCount", "projectSyncText", "projectFreshness", "projectSpotlight",
+    "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectCommitLabel", "projectCommitHint", "projectStarredCount", "commitScope",
+    "projectMaintenanceFocus", "projectMaintenanceSummary", "projectMaintenanceList",
     "projectFilterTabs", "projectTabIndicator", "projectPanel",
+    "projectRelationMap", "projectMapSearch", "projectMapScope", "projectMapFit",
+    "projectMapReset", "projectMapGraph", "projectMapViewport", "projectMapEdges",
+    "projectMapNodes", "projectMapEmpty", "projectMapSummary", "projectMapStatus",
+    "projectMapDetail", "projectMapVisibleCount", "projectMapNodeList",
     "knowledgeMap", "knowledgeMapSearch", "knowledgeMapScope", "knowledgeMapFit",
     "knowledgeMapPause", "knowledgeMapReset", "knowledgeMapGraph", "knowledgeMapViewport",
     "knowledgeMapEdges", "knowledgeMapEdgeLabels", "knowledgeMapNodes", "knowledgeMapEmpty",
@@ -142,8 +158,15 @@ function bindEvents() {
       activateProjectFilter(button.dataset.projectFilter);
     });
   });
+  document.querySelectorAll(".smart-nav-link").forEach((link) => {
+    link.addEventListener("click", () => closeSidebar());
+  });
+  document.querySelectorAll("[data-readme-action]").forEach((button) => {
+    button.addEventListener("click", () => openReadmeDestination(button.dataset.readmeAction));
+  });
   dom.projectFilterTabs.addEventListener("keydown", handleProjectTabKeydown);
   window.addEventListener("resize", positionProjectTabIndicator);
+  initializeProjectMapEvents();
   dom.statusFilter.addEventListener("change", (event) => {
     state.status = event.target.value;
     state.quickFilter = "all";
@@ -262,9 +285,11 @@ function bindEvents() {
     openEditor(editButton.dataset.editNote);
   });
 
-  dom.openSidebar.addEventListener("click", () => document.body.classList.add("sidebar-open"));
-  dom.closeSidebar.addEventListener("click", closeSidebar);
-  dom.sidebarScrim.addEventListener("click", closeSidebar);
+  dom.openSidebar.addEventListener("click", toggleSidebar);
+  dom.collapseSidebar.addEventListener("click", collapseSidebar);
+  dom.closeSidebar.addEventListener("click", () => closeSidebar({ restoreFocus: true }));
+  dom.sidebarScrim.addEventListener("click", () => closeSidebar({ restoreFocus: true }));
+  window.addEventListener("resize", handleSidebarResize);
   dom.newNoteButton.addEventListener("click", () => openEditor());
   dom.closeDetail.addEventListener("click", () => dom.detailDialog.close());
   dom.closeEditor.addEventListener("click", closeEditor);
@@ -296,7 +321,7 @@ function bindEvents() {
       event.preventDefault();
       dom.searchInput.focus();
     }
-    if (event.key === "Escape") closeSidebar();
+    if (event.key === "Escape") closeSidebar({ restoreFocus: true });
   });
 }
 
@@ -313,7 +338,7 @@ function renderAll() {
 }
 
 function activateProjectFilter(filter) {
-  if (!["owned", "pages", "forks", "starred"].includes(filter)) return;
+  if (!["owned", "pages", "forks", "starred", "map"].includes(filter)) return;
   const changed = state.projectFilter !== filter;
   state.projectFilter = filter;
   renderProjects({ animate: changed });
@@ -352,6 +377,28 @@ function renderProjects({ animate = false } = {}) {
   });
   window.requestAnimationFrame(positionProjectTabIndicator);
 
+  const mapActive = state.projectFilter === "map";
+  renderProjectSpotlight();
+  dom.projectGrid.hidden = mapActive;
+  dom.projectEmpty.hidden = true;
+  dom.projectRelationMap.hidden = !mapActive;
+  dom.commitScope.hidden = mapActive;
+  if (mapActive) {
+    dom.projectResultCount.textContent = String(state.projects.length + state.starredProjects.length);
+    if (state.projectPayload) {
+      window.requestAnimationFrame(() => renderProjectMap({ fit: true }));
+    } else {
+      dom.projectMapSummary.textContent = "公开项目索引暂未载入";
+      dom.projectMapStatus.textContent = "请稍后刷新；笔记目录和现有项目卡片仍可正常使用。";
+      dom.projectMapEmpty.hidden = false;
+      dom.projectMapVisibleCount.textContent = "0";
+      dom.projectMapEdges.replaceChildren();
+      dom.projectMapNodes.replaceChildren();
+    }
+    renderProjectProfileSummary();
+    return;
+  }
+
   const source = state.projectFilter === "starred" ? state.starredProjects : state.projects;
   const projects = source.filter((project) => {
     const haystack = [project.name, project.description, project.language, ...(project.topics || [])]
@@ -374,24 +421,155 @@ function renderProjects({ animate = false } = {}) {
     window.clearTimeout(projectAnimationTimer);
     projectAnimationTimer = window.setTimeout(() => dom.projectGrid.classList.remove("is-entering"), 560);
   }
+  renderProjectProfileSummary();
+}
+
+function renderProjectSpotlight() {
+  if (!dom.projectSpotlight) return;
+  const project = state.projects.find((item) => item.name === "starline-learning-view");
+  const guide = state.projectGuides["starline-learning-view"];
+  const searchable = [project?.name, project?.description, guide?.title, guide?.intro, guide?.audience]
+    .filter(Boolean).join(" ").toLocaleLowerCase("zh-CN");
+  const visible = state.projectFilter === "owned" && project && guide && (!state.query || searchable.includes(state.query));
+  dom.projectSpotlight.hidden = !visible;
+  if (!visible) {
+    dom.projectSpotlight.replaceChildren();
+    return;
+  }
+
+  const repoUrl = safeHref(project.repoUrl);
+  const pagesUrl = deriveProjectPagesUrl(project, state.projectPayload?.owner);
+  const capabilityList = (guide.capabilities || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const readmeList = (guide.readmeGuide || []).map((item) => `<li><a href="${escapeAttr(safeHref(item.url))}" target="_blank" rel="noopener noreferrer"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.detail)}</span><span aria-hidden="true">↗</span></a></li>`).join("");
+  dom.projectSpotlight.innerHTML = `<div class="project-spotlight-main">
+    <div class="project-spotlight-kicker"><span class="eyebrow">${escapeHtml(guide.label || "项目介绍")}</span><code>${escapeHtml(project.fullName)}</code></div>
+    <h3 id="projectSpotlightTitle">${escapeHtml(guide.title || project.name)}</h3>
+    <p class="project-spotlight-intro">${escapeHtml(guide.intro || project.description || "")}</p>
+    <p class="project-spotlight-audience"><strong>适合谁：</strong>${escapeHtml(guide.audience || "希望追溯公开项目并整理学习内容的读者。")}</p>
+    <ul class="project-spotlight-capabilities">${capabilityList}</ul>
+    <div class="project-spotlight-actions">
+      ${pagesUrl ? `<a class="button button-primary" href="${escapeAttr(pagesUrl)}" target="_blank" rel="noopener noreferrer">打开在线页面 ↗</a>` : ""}
+      ${repoUrl ? `<a class="button button-secondary" href="${escapeAttr(`${repoUrl}#readme`)}" target="_blank" rel="noopener noreferrer">打开 README ↗</a>` : ""}
+    </div>
+  </div><div class="project-readme-guide">
+    <div><span class="eyebrow">README PATH / 阅读顺序</span><h4>按这个顺序了解项目</h4><p>README 是项目的使用说明和维护入口，先看概览，再看数据与部署。</p></div>
+    <ol>${readmeList}</ol>
+  </div>`;
+}
+
+function renderProjectProfileSummary() {
   if (state.projectPayload) {
     const generatedAt = new Date(state.projectPayload.generatedAt);
     const time = Number.isNaN(generatedAt.getTime()) ? state.projectPayload.generatedAt : new Intl.DateTimeFormat("zh-CN", {
       month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
     }).format(generatedAt);
     const summary = state.projectPayload.summary || {};
+    const freshness = getProjectDataFreshness(state.projectPayload.generatedAt);
     dom.projectSyncText.textContent = `${state.projectPayload.owner} · ${summary.repositories ?? state.projects.length} 个公开仓库 · 索引更新于 ${time}`;
+    dom.projectFreshness.className = `project-freshness is-${freshness.level}`;
+    dom.projectFreshness.textContent = freshness.label;
+    dom.projectFreshness.title = freshness.detail;
     dom.projectOwnedCount.textContent = String(summary.owned ?? state.projects.filter((project) => !project.fork).length);
     dom.projectForkCount.textContent = String(summary.forked ?? state.projects.filter((project) => project.fork).length);
-    dom.projectCommitCount.textContent = String(summary.matchedDefaultBranchCommits ?? "—");
+    const hasRecentCommitTotal = Number.isInteger(summary.recentMatchedDefaultBranchCommits);
+    dom.projectCommitCount.textContent = String(hasRecentCommitTotal ? summary.recentMatchedDefaultBranchCommits : (summary.matchedDefaultBranchCommits ?? "—"));
+    dom.projectCommitLabel.textContent = hasRecentCommitTotal ? "近期提交" : "本人提交";
+    dom.projectCommitHint.textContent = hasRecentCommitTotal ? `近 ${Number(state.projectPayload.activityWindowDays) || 30} 天匹配` : "默认分支匹配";
     dom.projectStarredCount.textContent = String(summary.starred ?? state.starredProjects.length);
-    dom.commitScope.textContent = state.projectPayload.commitScope || "提交数按 GitHub 账号身份匹配每个公开仓库默认分支统计。";
+    const activityWindowDays = Number(state.projectPayload.activityWindowDays) || 30;
+    const commitScope = state.projectPayload.commitScope || "提交数按 GitHub 账号身份匹配每个公开仓库默认分支统计。";
+    dom.commitScope.textContent = `${commitScope} 近期优先区按近 ${activityWindowDays} 天提交和最近推送自动计算。`;
     dom.navProjects.textContent = String(summary.repositories ?? state.projects.length);
+    renderProjectMaintenanceFocus();
   } else {
     dom.projectSyncText.textContent = "项目索引暂未载入；笔记目录仍可正常使用。";
+    dom.projectFreshness.className = "project-freshness is-unknown";
+    dom.projectFreshness.textContent = "索引未载入";
+    dom.projectFreshness.title = "项目索引加载失败；不会影响本地笔记目录。";
     [dom.projectOwnedCount, dom.projectForkCount, dom.projectCommitCount, dom.projectStarredCount].forEach((element) => { element.textContent = "—"; });
     dom.navProjects.textContent = "—";
+    dom.projectMaintenanceFocus.hidden = true;
   }
+}
+
+function getProjectDataFreshness(value, now = Date.now()) {
+  const generatedTime = value ? new Date(value).getTime() : Number.NaN;
+  if (!Number.isFinite(generatedTime)) return { level: "unknown", label: "时间未知", detail: "索引没有可识别的生成时间。" };
+  const ageHours = Math.max(0, (now - generatedTime) / 3600000);
+  if (ageHours <= 1.5) return { level: "fresh", label: "刚刚自动刷新", detail: "索引在 90 分钟内生成。" };
+  if (ageHours <= 8) return { level: "fresh", label: `${Math.floor(ageHours)} 小时前刷新`, detail: "索引处于每 6 小时自动刷新周期内。" };
+  if (ageHours <= 18) return { level: "current", label: `${Math.floor(ageHours)} 小时前刷新`, detail: "可能存在 GitHub Actions 排队延迟，但仍属于当天索引。" };
+  return { level: "stale", label: "同步可能延迟", detail: `索引已约 ${Math.floor(ageHours)} 小时未刷新，请检查 GitHub Actions。` };
+}
+
+function openReadmeDestination(destination) {
+  if (destination === "notes") {
+    document.querySelector("#libraryHeading")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  if (destination === "knowledge-map") {
+    document.querySelector('[data-view="map"]')?.click();
+    window.setTimeout(() => document.querySelector("#knowledgeMapTitle")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    return;
+  }
+  if (destination === "project-map") {
+    activateProjectFilter("map");
+    window.setTimeout(() => document.querySelector("#projectRelationMapTitle")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  }
+}
+
+function getProjectMaintenanceState(project, now = Date.now()) {
+  const commitCount = Number.isInteger(project?.commitCount) ? project.commitCount : null;
+  const recentCommitCount = Number.isInteger(project?.recentCommitCount) ? project.recentCommitCount : null;
+  const activityWindowDays = Number(state.projectPayload?.activityWindowDays) || 30;
+  const activityTimes = [project?.lastMatchedCommitAt, project?.pushedAt, project?.updatedAt]
+    .map((value) => value ? new Date(value).getTime() : Number.NaN)
+    .filter(Number.isFinite);
+  const activityTime = activityTimes.length ? Math.max(...activityTimes) : Number.NaN;
+  const daysSinceActivity = Number.isFinite(activityTime) ? Math.max(0, Math.floor((now - activityTime) / 86400000)) : null;
+  const highPriority = (recentCommitCount !== null && recentCommitCount >= 3) || (recentCommitCount !== null && recentCommitCount >= 1 && daysSinceActivity !== null && daysSinceActivity <= 7);
+  const recent = (recentCommitCount !== null && recentCommitCount >= 1) || (daysSinceActivity !== null && daysSinceActivity <= activityWindowDays);
+  const level = highPriority ? "active" : (recent ? "recent" : "");
+  const label = highPriority ? "近期高频" : (recent ? "近期维护" : "");
+  const detail = recentCommitCount !== null && recentCommitCount > 0
+    ? `近 ${activityWindowDays} 天本人 ${recentCommitCount} 次提交`
+    : (recent && daysSinceActivity !== null ? `${daysSinceActivity === 0 ? "今天" : `${daysSinceActivity} 天前`}推送` : "");
+  const priorityScore = (recentCommitCount || 0) * 20 + (daysSinceActivity === null ? 0 : Math.max(0, activityWindowDays - daysSinceActivity));
+  return { active: highPriority, recent, level, label, detail, daysSinceActivity, commitCount, recentCommitCount, priorityScore };
+}
+
+function renderProjectMaintenanceFocus() {
+  if (!dom.projectMaintenanceFocus) return;
+  const projects = state.projects
+    .filter((project) => !project.fork && !project.archived)
+    .map((project) => ({ project, maintenance: getProjectMaintenanceState(project) }))
+    .filter(({ maintenance }) => maintenance.level)
+    .sort((a, b) => {
+      const scoreDelta = b.maintenance.priorityScore - a.maintenance.priorityScore;
+      if (scoreDelta) return scoreDelta;
+      return compareDateDesc(a.project.pushedAt || a.project.updatedAt, b.project.pushedAt || b.project.updatedAt);
+    });
+
+  if (!state.projectPayload || !projects.length) {
+    dom.projectMaintenanceFocus.hidden = true;
+    return;
+  }
+
+  const activityWindowDays = Number(state.projectPayload.activityWindowDays) || 30;
+  const recentCommitTotal = state.projectPayload.summary?.recentMatchedDefaultBranchCommits;
+  const recentCommitCopy = Number.isInteger(recentCommitTotal) ? ` · 本人提交 ${recentCommitTotal} 次` : "";
+  dom.projectMaintenanceSummary.textContent = `自动筛出 ${projects.length} 个 · 近 ${activityWindowDays} 天${recentCommitCopy}；按近期提交与推送排序，每 6 小时刷新。`;
+  dom.projectMaintenanceList.innerHTML = projects.slice(0, 4).map(({ project, maintenance }) => {
+    const repoUrl = safeHref(project.repoUrl);
+    const pagesUrl = deriveProjectPagesUrl(project, state.projectPayload?.owner);
+    const primaryUrl = pagesUrl || repoUrl;
+    return `<a class="project-maintenance-item is-${maintenance.level}" href="${escapeAttr(primaryUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeAttr(`${project.name} · ${maintenance.label} · ${maintenance.detail}`)}">
+      <span class="maintenance-item-mark" aria-hidden="true"></span>
+      <span class="maintenance-item-copy"><strong>${escapeHtml(project.name)}</strong><small>${escapeHtml(maintenance.label)} · ${escapeHtml(maintenance.detail)}</small></span>
+      <span class="maintenance-item-arrow" aria-hidden="true">↗</span>
+    </a>`;
+  }).join("");
+  dom.projectMaintenanceFocus.hidden = false;
 }
 
 function renderProjectCard(project, starred = false, index = 0) {
@@ -399,6 +577,7 @@ function renderProjectCard(project, starred = false, index = 0) {
   const pagesUrl = deriveProjectPagesUrl(project, state.projectPayload?.owner);
   const homepage = project.homepage ? safeHref(project.homepage) : "";
   const primaryUrl = pagesUrl || homepage || repoUrl;
+  const maintenance = getProjectMaintenanceState(project);
   const description = projectDescription(project, starred);
   const pagesTarget = pagesUrl ? pagesUrl.replace(/^https?:\/\//i, "") : "";
   const badges = (starred
@@ -406,14 +585,17 @@ function renderProjectCard(project, starred = false, index = 0) {
     : [project.language, project.hasPages ? "GitHub Pages" : "源码仓库", project.fork ? "Fork" : "自建"]).filter(Boolean);
   const commitCopy = starred ? `社区 ${Number(project.stars) || 0} Stars` : (Number.isInteger(project.commitCount) ? `本人 ${project.commitCount} 次提交` : "本人提交数未知");
   const upstream = project.upstream?.repoUrl ? `<span class="project-upstream">上游：<a href="${escapeAttr(safeHref(project.upstream.repoUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(project.upstream.fullName || "查看来源")}</a></span>` : "";
-  return `<article class="project-card" style="--project-card-index:${Math.min(index, 8)}">
+  const maintenanceLine = maintenance.level ? `<div class="project-maintenance-line is-${maintenance.level}"><span class="maintenance-dot" aria-hidden="true"></span><strong>${escapeHtml(maintenance.label)}</strong><small>${escapeHtml(maintenance.detail)}</small></div>` : "";
+  return `<article class="project-card${maintenance.level ? ` is-maintenance-${maintenance.level}` : ""}" style="--project-card-index:${Math.min(index, 8)}">
     <div class="project-card-top"><span class="project-repo-mark" aria-hidden="true">⌘</span><span>${escapeHtml(project.fullName)}</span></div>
     <h3>${escapeHtml(project.name)}</h3>
+    ${maintenanceLine}
     <p>${escapeHtml(description)}</p>
     ${pagesTarget ? `<div class="project-pages-target" title="${escapeAttr(pagesUrl)}"><span>Pages</span><code>${escapeHtml(pagesTarget)}</code></div>` : ""}
     <div class="project-badges">${badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</div>
     ${upstream}
     <footer><span>${escapeHtml(commitCopy)} · 更新 ${formatTimestampDate(project.updatedAt)}</span><div>
+      ${repoUrl ? `<a href="${escapeAttr(`${repoUrl}#readme`)}" target="_blank" rel="noopener noreferrer">README</a>` : ""}
       ${repoUrl ? `<a href="${escapeAttr(repoUrl)}" target="_blank" rel="noopener noreferrer">源码</a>` : ""}
       ${primaryUrl && primaryUrl !== repoUrl ? `<a class="project-open" href="${escapeAttr(primaryUrl)}" target="_blank" rel="noopener noreferrer">${pagesUrl ? "打开网站" : "访问主页"} ↗</a>` : ""}
     </div></footer>
@@ -432,6 +614,8 @@ function deriveProjectPagesUrl(project, fallbackOwner = "") {
 }
 
 function projectDescription(project, starred = false) {
+  const guide = state.projectGuides[project?.name];
+  if (guide?.intro) return guide.intro;
   if (project.description?.trim()) return project.description.trim();
   if (String(project.name).toLocaleLowerCase("en-US") === "starline-learning-view") {
     return "集中管理学习笔记网页与 GitHub Pages 项目的静态知识库导航。";
@@ -886,6 +1070,32 @@ function validateProjectPayload(payload) {
   return errors;
 }
 
+function validateProjectGuidesPayload(payload) {
+  if (!payload || typeof payload !== "object" || !payload.projects || typeof payload.projects !== "object") return ["项目介绍必须包含 projects 对象"];
+  const errors = [];
+  Object.entries(payload.projects).forEach(([name, guide]) => {
+    const prefix = `projects.${name}`;
+    if (!guide || typeof guide !== "object") {
+      errors.push(`${prefix} 必须是对象`);
+      return;
+    }
+    ["intro", "audience", "readmeGuide"].forEach((key) => {
+      if (!(key in guide)) errors.push(`${prefix} 缺少 ${key}`);
+    });
+    if (typeof guide.intro !== "string" || !guide.intro.trim()) errors.push(`${prefix}.intro 无效`);
+    if (typeof guide.audience !== "string" || !guide.audience.trim()) errors.push(`${prefix}.audience 无效`);
+    if (!Array.isArray(guide.capabilities) || guide.capabilities.some((item) => typeof item !== "string" || !item.trim())) errors.push(`${prefix}.capabilities 无效`);
+    if (!Array.isArray(guide.readmeGuide) || guide.readmeGuide.length < 1) {
+      errors.push(`${prefix}.readmeGuide 无效`);
+      return;
+    }
+    guide.readmeGuide.forEach((item, index) => {
+      if (!item || typeof item !== "object" || !item.label || !item.detail || !safeHref(item.url || "")) errors.push(`${prefix}.readmeGuide[${index}] 无效`);
+    });
+  });
+  return errors;
+}
+
 function safeHref(value) {
   if (typeof value !== "string" || !value.trim()) return "";
   const trimmed = value.trim();
@@ -937,8 +1147,63 @@ function removeStorage(key) {
   try { localStorage.removeItem(key); } catch { /* 无本地存储时无需处理 */ }
 }
 
-function closeSidebar() {
+function isDrawerSidebar() {
+  return window.matchMedia("(max-width: 960px)").matches;
+}
+
+function syncSidebarControls() {
+  const drawerOpen = document.body.classList.contains("sidebar-open");
+  const collapsed = document.body.classList.contains("sidebar-collapsed");
+  const expanded = isDrawerSidebar() ? drawerOpen : !collapsed;
+  dom.openSidebar.setAttribute("aria-expanded", String(expanded));
+  dom.openSidebar.setAttribute("aria-label", expanded ? "收起分类导航" : "打开分类导航");
+  dom.collapseSidebar.setAttribute("aria-label", isDrawerSidebar() ? "关闭分类导航" : "收起分类导航");
+  dom.collapseSidebar.title = isDrawerSidebar() ? "关闭分类导航" : "收起分类导航";
+}
+
+function restoreSidebarState() {
+  if (isDrawerSidebar()) {
+    document.body.classList.remove("sidebar-open");
+  } else {
+    document.body.classList.toggle("sidebar-collapsed", readStorage(STORAGE.sidebar) === "collapsed");
+  }
+  syncSidebarControls();
+}
+
+function toggleSidebar() {
+  if (isDrawerSidebar()) {
+    const shouldOpen = !document.body.classList.contains("sidebar-open");
+    document.body.classList.toggle("sidebar-open", shouldOpen);
+    syncSidebarControls();
+    if (shouldOpen) window.setTimeout(() => dom.closeSidebar.focus(), 20);
+    return;
+  }
+  const shouldCollapse = !document.body.classList.contains("sidebar-collapsed");
+  document.body.classList.toggle("sidebar-collapsed", shouldCollapse);
+  writeStorage(STORAGE.sidebar, shouldCollapse ? "collapsed" : "expanded");
+  syncSidebarControls();
+}
+
+function collapseSidebar() {
+  if (isDrawerSidebar()) {
+    closeSidebar({ restoreFocus: true });
+    return;
+  }
+  document.body.classList.add("sidebar-collapsed");
+  writeStorage(STORAGE.sidebar, "collapsed");
+  syncSidebarControls();
+  dom.openSidebar.focus();
+}
+
+function closeSidebar({ restoreFocus = false } = {}) {
   document.body.classList.remove("sidebar-open");
+  syncSidebarControls();
+  if (restoreFocus) dom.openSidebar.focus();
+}
+
+function handleSidebarResize() {
+  if (!isDrawerSidebar()) document.body.classList.remove("sidebar-open");
+  syncSidebarControls();
 }
 
 function showToast(message) {
