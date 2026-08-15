@@ -27,10 +27,13 @@
     </label>
 
     <div class="top-actions">
-      <button class="button button-quiet mobile-menu" id="openSidebar" type="button" aria-label="打开或收起分类导航" aria-controls="sidebar" aria-expanded="true">目录</button>
+      <button class="button button-quiet mobile-menu" id="openSidebar" type="button" aria-label="收起分类导航" aria-controls="sidebar" aria-expanded="true">
+        <span class="sidebar-toggle-icon" id="openSidebarIcon" aria-hidden="true">←</span>
+        <span id="openSidebarLabel">收起目录</span>
+      </button>
       <button class="button button-quiet appearance-button" id="appearanceButton" type="button" aria-label="打开外观设置">外观</button>
-      <details class="action-menu">
-        <summary class="button button-quiet" aria-label="打开更多操作">•••</summary>
+      <details class="action-menu" id="actionMenu">
+        <summary class="button button-quiet" id="actionMenuSummary" aria-label="打开更多操作" aria-expanded="false">•••</summary>
         <div class="action-menu-panel">
           <button id="importButton" type="button"><span>导入 JSON</span><small>载入已有目录</small></button>
           <button id="exportButton" type="button"><span>导出 JSON</span><small>交给 Git / PR 发布</small></button>
@@ -51,40 +54,42 @@
         </div>
       </div>
 
-      <nav class="side-section smart-nav" aria-labelledby="smartHeading">
-        <div class="section-label"><span id="smartHeading">快捷入口</span></div>
-        <button class="smart-nav-item is-active" type="button" data-smart-view="all"><span class="smart-icon" aria-hidden="true">⌂</span><span>全部笔记</span><b id="navTotal">0</b></button>
-        <button class="smart-nav-item" type="button" data-smart-view="featured"><span class="smart-icon" aria-hidden="true">◇</span><span>精选内容</span><b id="navFeatured">0</b></button>
-        <button class="smart-nav-item" type="button" data-smart-view="attention"><span class="smart-icon" aria-hidden="true">!</span><span>需要处理</span><b id="navAttention">0</b></button>
-        <button class="smart-nav-item" type="button" data-smart-view="draft"><span class="smart-icon" aria-hidden="true">○</span><span>本地草稿</span><b id="navDraft">0</b></button>
-        <a class="smart-nav-item smart-nav-link" href="#projectHeading"><span class="smart-icon" aria-hidden="true">⌘</span><span>GitHub 项目</span><b id="navProjects">0</b></a>
-      </nav>
+      <div class="sidebar-scroll" id="sidebarScroll">
+        <nav class="side-section smart-nav" aria-labelledby="smartHeading">
+          <div class="section-label"><span id="smartHeading">快捷入口</span></div>
+          <button class="smart-nav-item is-active" type="button" data-smart-view="all"><span class="smart-icon" aria-hidden="true">⌂</span><span>全部笔记</span><b id="navTotal">0</b></button>
+          <button class="smart-nav-item" type="button" data-smart-view="featured"><span class="smart-icon" aria-hidden="true">◇</span><span>精选内容</span><b id="navFeatured">0</b></button>
+          <button class="smart-nav-item" type="button" data-smart-view="attention"><span class="smart-icon" aria-hidden="true">!</span><span>需要处理</span><b id="navAttention">0</b></button>
+          <button class="smart-nav-item" type="button" data-smart-view="draft"><span class="smart-icon" aria-hidden="true">○</span><span>本地草稿</span><b id="navDraft">0</b></button>
+          <a class="smart-nav-item smart-nav-link" href="#projectHeading"><span class="smart-icon" aria-hidden="true">⌘</span><span>GitHub 项目</span><b id="navProjects">0</b></a>
+        </nav>
 
-      <nav class="side-section" aria-labelledby="categoryHeading">
-        <div class="section-label">
-          <span id="categoryHeading">知识分类</span>
-          <span id="categoryCount">0</span>
-        </div>
-        <div class="category-tree" id="categoryTree"></div>
-      </nav>
+        <nav class="side-section" aria-labelledby="categoryHeading">
+          <div class="section-label">
+            <span id="categoryHeading">知识分类</span>
+            <span id="categoryCount">0</span>
+          </div>
+          <div class="category-tree" id="categoryTree"></div>
+        </nav>
 
-      <section class="side-section" aria-labelledby="tagHeading">
-        <div class="section-label">
-          <span id="tagHeading">常用标签</span>
-          <button class="text-button" id="clearTags" type="button">清除</button>
-        </div>
-        <div class="tag-cloud" id="tagCloud"></div>
-      </section>
+        <section class="side-section" aria-labelledby="tagHeading">
+          <div class="section-label">
+            <span id="tagHeading">常用标签</span>
+            <button class="text-button" id="clearTags" type="button">清除</button>
+          </div>
+          <div class="tag-cloud" id="tagCloud"></div>
+        </section>
 
-      <section class="source-card" aria-labelledby="sourceHeading">
-        <div class="source-icon" aria-hidden="true">JSON</div>
-        <div>
-          <h3 id="sourceHeading">仓库数据为准</h3>
-          <p>页面修改只保存在本机。导出 JSON 后，通过 Git / PR 更新正式目录。</p>
-        </div>
-        <button class="text-button" id="resetDraftButton" type="button">恢复仓库版本</button>
-        <button class="text-button sidebar-appearance" id="appearanceSidebarButton" type="button">更换外观</button>
-      </section>
+        <section class="source-card" aria-labelledby="sourceHeading">
+          <div class="source-icon" aria-hidden="true">JSON</div>
+          <div>
+            <h3 id="sourceHeading">仓库数据为准</h3>
+            <p>页面修改只保存在本机。导出 JSON 后，通过 Git / PR 更新正式目录。</p>
+          </div>
+          <button class="text-button" id="resetDraftButton" type="button">恢复仓库版本</button>
+          <button class="text-button sidebar-appearance" id="appearanceSidebarButton" type="button">更换外观</button>
+        </section>
+      </div>
     </aside>
 
     <button class="sidebar-scrim" id="sidebarScrim" type="button" tabindex="-1" aria-label="关闭分类导航"></button>

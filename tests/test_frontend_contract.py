@@ -35,9 +35,15 @@ class FrontendContractTests(unittest.TestCase):
             self.assertIn(f'data-project-filter="{project_filter}"', html)
         self.assertLess(html.index('<section class="project-section"'), html.index('<section class="library-section"'))
         self.assertIn('id="collapseSidebar"', html)
+        self.assertIn('id="openSidebarLabel"', html)
+        self.assertIn('id="sidebarScroll"', html)
+        self.assertIn('id="actionMenu"', html)
         self.assertIn("function toggleSidebar", script)
+        self.assertIn("function closeActionMenu", script)
         self.assertIn("sidebar-collapsed", script)
         self.assertIn("body.sidebar-collapsed .app-shell", styles)
+        self.assertIn(".action-menu:not([open]) > .action-menu-panel", styles)
+        self.assertIn("scrollbar-gutter: stable", styles)
 
     def test_home_readme_and_maintenance_guides_are_visible(self) -> None:
         html = (ROOT / "index.html").read_text(encoding="utf-8")

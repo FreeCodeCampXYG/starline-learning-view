@@ -122,7 +122,8 @@ function cacheDom() {
     "statusFilter", "linkFilter", "sortFilter", "filterSummary", "notesGrid",
     "emptyState", "emptyResetButton", "resultCount", "libraryHeading", "statTotal",
     "statPublished", "statUnchecked", "statCategories", "featuredButton", "dataModeText",
-    "themeDescription", "openSidebar", "closeSidebar", "collapseSidebar", "sidebarScrim", "newNoteButton",
+    "themeDescription", "openSidebar", "openSidebarIcon", "openSidebarLabel", "closeSidebar", "collapseSidebar", "sidebarScrim", "newNoteButton",
+    "actionMenu", "actionMenuSummary",
     "appearanceButton", "appearanceSidebarButton", "appearanceDialog", "closeAppearance", "continueCard", "attentionCard",
     "navTotal", "navFeatured", "navAttention", "navDraft", "navProjects", "activeFilterRow",
     "detailDialog", "detailContent", "closeDetail", "editorDialog", "closeEditor",
@@ -290,14 +291,33 @@ function bindEvents() {
   dom.closeSidebar.addEventListener("click", () => closeSidebar({ restoreFocus: true }));
   dom.sidebarScrim.addEventListener("click", () => closeSidebar({ restoreFocus: true }));
   window.addEventListener("resize", handleSidebarResize);
+  dom.actionMenu.addEventListener("toggle", syncActionMenuState);
+  dom.actionMenu.addEventListener("click", (event) => {
+    if (event.target.closest(".action-menu-panel a")) closeActionMenu();
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (dom.actionMenu.open && !dom.actionMenu.contains(event.target)) closeActionMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !dom.actionMenu.open) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    closeActionMenu({ restoreFocus: true });
+  });
   dom.newNoteButton.addEventListener("click", () => openEditor());
   dom.closeDetail.addEventListener("click", () => dom.detailDialog.close());
   dom.closeEditor.addEventListener("click", closeEditor);
   dom.cancelEditor.addEventListener("click", closeEditor);
   dom.noteForm.addEventListener("submit", saveNoteFromForm);
-  dom.importButton.addEventListener("click", () => dom.importInput.click());
+  dom.importButton.addEventListener("click", () => {
+    closeActionMenu();
+    dom.importInput.click();
+  });
   dom.importInput.addEventListener("change", importJson);
-  dom.exportButton.addEventListener("click", exportJson);
+  dom.exportButton.addEventListener("click", () => {
+    closeActionMenu();
+    exportJson();
+  });
   dom.resetDraftButton.addEventListener("click", resetToRepositoryData);
   dom.continueCard.addEventListener("click", (event) => {
     const button = event.target.closest("[data-continue-note]");
@@ -321,7 +341,9 @@ function bindEvents() {
       event.preventDefault();
       dom.searchInput.focus();
     }
-    if (event.key === "Escape") closeSidebar({ restoreFocus: true });
+    if (event.key === "Escape" && document.body.classList.contains("sidebar-open")) {
+      closeSidebar({ restoreFocus: true });
+    }
   });
 }
 
@@ -1157,6 +1179,8 @@ function syncSidebarControls() {
   const expanded = isDrawerSidebar() ? drawerOpen : !collapsed;
   dom.openSidebar.setAttribute("aria-expanded", String(expanded));
   dom.openSidebar.setAttribute("aria-label", expanded ? "收起分类导航" : "打开分类导航");
+  dom.openSidebarLabel.textContent = expanded ? "收起目录" : "展开目录";
+  dom.openSidebarIcon.textContent = expanded ? "←" : "→";
   dom.collapseSidebar.setAttribute("aria-label", isDrawerSidebar() ? "关闭分类导航" : "收起分类导航");
   dom.collapseSidebar.title = isDrawerSidebar() ? "关闭分类导航" : "收起分类导航";
 }
@@ -1204,6 +1228,19 @@ function closeSidebar({ restoreFocus = false } = {}) {
 function handleSidebarResize() {
   if (!isDrawerSidebar()) document.body.classList.remove("sidebar-open");
   syncSidebarControls();
+}
+
+function syncActionMenuState() {
+  const expanded = dom.actionMenu.open;
+  dom.actionMenuSummary.setAttribute("aria-expanded", String(expanded));
+  dom.actionMenuSummary.setAttribute("aria-label", expanded ? "关闭更多操作" : "打开更多操作");
+}
+
+function closeActionMenu({ restoreFocus = false } = {}) {
+  if (!dom.actionMenu.open) return;
+  dom.actionMenu.open = false;
+  syncActionMenuState();
+  if (restoreFocus) dom.actionMenuSummary.focus();
 }
 
 function showToast(message) {

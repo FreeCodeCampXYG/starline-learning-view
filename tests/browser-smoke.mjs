@@ -100,11 +100,39 @@ assert(usability.cardReadmeLinks > 0, "项目卡片缺少 README 追溯入口");
 assert(usability.projectBeforeLibrary, "GitHub 项目区应位于本地笔记区之前");
 assert(usability.defaultList, "文本型笔记应默认使用列表视图");
 assert(usability.exactTotal === "10", "统计数字应立即显示真实值");
+const actionMenuInitial = await evaluate(`({
+  open: document.querySelector('#actionMenu').open,
+  expanded: document.querySelector('#actionMenuSummary').getAttribute('aria-expanded'),
+  panelVisible: document.querySelector('.action-menu-panel').checkVisibility()
+})`);
+assert(!actionMenuInitial.open && actionMenuInitial.expanded === "false" && !actionMenuInitial.panelVisible, "更多操作菜单默认应收起");
+await evaluate("document.querySelector('#actionMenuSummary').click(); true");
+assert(await evaluate("document.querySelector('#actionMenu').open && document.querySelector('#actionMenuSummary').getAttribute('aria-expanded') === 'true'"), "更多操作菜单未打开");
+await evaluate("document.querySelector('main').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); true");
+assert(await evaluate("!document.querySelector('#actionMenu').open"), "点击菜单外部后更多操作未收起");
+await evaluate("document.querySelector('#actionMenuSummary').click(); true");
+await evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); true");
+assert(await evaluate("!document.querySelector('#actionMenu').open && document.activeElement.id === 'actionMenuSummary'"), "Esc 未关闭更多操作或恢复焦点");
 await evaluate("document.querySelector('#openSidebar').click(); true");
 await delay(80);
 assert(await evaluate("document.body.classList.contains('sidebar-collapsed')"), "桌面目录开关未收起侧栏");
+assert(await evaluate("document.querySelector('#openSidebarLabel').textContent.trim()") === "展开目录", "侧栏收起后未显示明确的展开入口");
 await evaluate("document.querySelector('#openSidebar').click(); true");
 assert(await evaluate("!document.body.classList.contains('sidebar-collapsed')"), "桌面目录开关未恢复侧栏");
+assert(await evaluate("document.querySelector('#openSidebarLabel').textContent.trim()") === "收起目录", "侧栏展开后入口状态未同步");
+const sidebarLayout = await evaluate(`(() => {
+  const sidebar = document.querySelector('#sidebar');
+  const scroller = document.querySelector('#sidebarScroll');
+  const heading = document.querySelector('#categoryHeading');
+  const sidebarBox = sidebar.getBoundingClientRect();
+  const headingBox = heading.getBoundingClientRect();
+  return {
+    overflow: getComputedStyle(scroller).overflowY,
+    headingInside: headingBox.left >= sidebarBox.left && headingBox.right <= sidebarBox.right,
+    scrollable: scroller.scrollHeight >= scroller.clientHeight
+  };
+})()`);
+assert(sidebarLayout.overflow === "auto" && sidebarLayout.headingInside && sidebarLayout.scrollable, "分类导航滚动区未正确约束在侧栏内");
 await evaluate("document.querySelector('[data-readme-action=\"project-map\"]').click(); true");
 await delay(120);
 assert(await evaluate("document.querySelector('[data-project-filter=\"map\"]').getAttribute('aria-selected')") === "true", "首页 README 项目关系图入口未切换到对应视图");
