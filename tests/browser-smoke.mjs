@@ -88,7 +88,8 @@ const usability = await evaluate(`({
   cardReadmeLinks: document.querySelectorAll('.project-card a[href$="#readme"]').length,
   projectBeforeLibrary: Boolean(document.querySelector('.project-section').compareDocumentPosition(document.querySelector('.library-section')) & Node.DOCUMENT_POSITION_FOLLOWING),
   defaultList: document.querySelector('#notesGrid').classList.contains('is-list'),
-  exactTotal: document.querySelector('#statTotal').textContent.trim()
+  exactTotal: document.querySelector('#statTotal').textContent.trim(),
+  licenseLink: document.querySelector('.site-footer a[href="LICENSE"]')?.textContent.trim()
 })`);
 assert(usability.themesHidden, "外观选择不应占据首屏");
 assert(usability.smartViews === 4, "快捷入口数量错误");
@@ -100,6 +101,8 @@ assert(usability.cardReadmeLinks > 0, "项目卡片缺少 README 追溯入口");
 assert(usability.projectBeforeLibrary, "GitHub 项目区应位于本地笔记区之前");
 assert(usability.defaultList, "文本型笔记应默认使用列表视图");
 assert(usability.exactTotal === "10", "统计数字应立即显示真实值");
+assert(usability.licenseLink === "MIT License", "页面页脚缺少 MIT License 入口");
+assert(await evaluate("fetch('LICENSE').then((response) => response.ok && response.text()).then((text) => text.startsWith('MIT License'))"), "页面许可证链接未返回标准 MIT 文本");
 const actionMenuInitial = await evaluate(`({
   open: document.querySelector('#actionMenu').open,
   expanded: document.querySelector('#actionMenuSummary').getAttribute('aria-expanded'),
@@ -318,6 +321,7 @@ console.log(JSON.stringify({
   checks: [
     "data rendering",
     "task-first home hierarchy",
+    "MIT license footer and published text",
     "homepage README routes",
     "GitHub-first project ordering",
     "project introduction and README reading path",

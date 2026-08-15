@@ -1,0 +1,28 @@
+name: Feature request
+description: Propose a problem-driven improvement.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Describe the user problem before proposing a solution. Do not include secrets or personal data."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Who has the problem, and what outcome is currently blocked?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Include scope, alternatives considered, and compatibility impact.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What observable behavior would make this complete?
+    validations:
+      required: true

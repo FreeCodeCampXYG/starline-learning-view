@@ -623,6 +623,30 @@ kbd {
   display: none;
 }
 
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  margin-top: 56px;
+  padding: 22px 0 28px;
+  color: var(--ink-faint);
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.site-footer a {
+  color: var(--ink-muted);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--accent-ink);
+  text-decoration: underline;
+}
+
 .main-content {
   min-width: 0;
   padding: 52px 0 0 clamp(36px, 4vw, 68px);

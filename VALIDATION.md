@@ -6,7 +6,10 @@
 
 - `node --check app.js`：通过。
 - `node --check knowledge-map.js`、`node --check project-map.js` 与 `python -m json.tool data/relations.json`：通过。
-- `python -m unittest discover -s tests -p "test_*.py" -v`：16 项通过。
+- `python -m unittest discover -s tests -p "test_*.py" -v`：17 项通过。
+- 许可证与仓库治理：根目录 `LICENSE` 为标准 MIT 文本，版权主体为 `StarLine (GitHub: FreeCodeCampXYG)`；README 已明确原创授权与第三方内容边界，并检查 Bug、功能建议和 PR 模板存在。
+- Pages 许可证入口：页面页脚链接 `LICENSE`，工作流会先校验许可证存在，再将其复制到 Pages artifact。
+- 真实 Chromium 已验证页脚 MIT 入口能返回标准许可证文本，并继续通过 390px 响应式横向溢出检查。
 - 项目介绍 JSON：`data/project-guides.json` 可解析，当前项目包含三项能力说明和四个指向真实 README 章节的引导链接；Actions 会校验并发布该文件。
 - 笔记 JSON 契约：通过，10 篇数据无字段、枚举、ID 或 URL 错误。
 - HTML/CSS 安全静态检查：135 个 HTML ID 无重复；5 套主题完整；未发现 GitHub Token 前缀；静态外链包含安全属性。

@@ -13,6 +13,29 @@ ROOT = Path(__file__).resolve().parents[1]
 class FrontendContractTests(unittest.TestCase):
     """覆盖页面入口、真实索引汇总和定时部署配置。"""
 
+    def test_mit_license_and_repository_governance_are_present(self) -> None:
+        """许可证、版权主体和协作模板应保持可追溯。"""
+        license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+
+        self.assertTrue(license_text.startswith("MIT License"))
+        self.assertIn("Copyright (c) 2026 StarLine (GitHub: FreeCodeCampXYG)", license_text)
+        self.assertIn("Permission is hereby granted, free of charge", license_text)
+        self.assertIn("[MIT License](LICENSE)", readme)
+        self.assertIn("Copyright © 2026 StarLine", readme)
+        self.assertIn("第三方内容", readme)
+        self.assertIn('<a href="LICENSE">MIT License</a>', html)
+        self.assertIn("project-map.js LICENSE _site/", workflow)
+        for relative_path in (
+            ".github/ISSUE_TEMPLATE/bug_report.yml",
+            ".github/ISSUE_TEMPLATE/feature_request.yml",
+            ".github/ISSUE_TEMPLATE/config.yml",
+            ".github/PULL_REQUEST_TEMPLATE.md",
+        ):
+            self.assertTrue((ROOT / relative_path).is_file(), relative_path)
+
     def test_github_profile_controls_are_wired(self) -> None:
         html = (ROOT / "index.html").read_text(encoding="utf-8")
         script = (ROOT / "app.js").read_text(encoding="utf-8")

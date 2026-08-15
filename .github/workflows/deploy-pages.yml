@@ -41,6 +41,7 @@ jobs:
           test -f app.js
           test -f knowledge-map.js
           test -f project-map.js
+          test -f LICENSE
           test -f data/notes.json
           test -f data/github-projects.json
           test -f data/project-guides.json
@@ -59,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site/data
-          cp index.html styles.css app.js knowledge-map.js project-map.js _site/
+          cp index.html styles.css app.js knowledge-map.js project-map.js LICENSE _site/
           cp data/notes.json _site/data/
           cp data/github-projects.json _site/data/
           cp data/project-guides.json _site/data/

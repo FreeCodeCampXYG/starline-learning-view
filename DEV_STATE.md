@@ -21,6 +21,9 @@
 - `data/project-guides.json` 单独维护面向读者的补充介绍，GitHub 自动索引继续保留原始公开字段和每日刷新职责。
 - 项目关系图、知识地图和 Pages 地址继续使用公开 JSON 与静态 SVG，不在浏览器请求 GitHub Token。
 - README 和 VALIDATION.md 已补充首页入口、数据口径、隐私边界与本轮验证证据。
+- 根目录采用标准 MIT License，版权主体确认为 `StarLine (GitHub: FreeCodeCampXYG)`；README 说明原创内容授权范围及第三方内容边界。
+- GitHub 仓库补齐 Bug、功能建议 Issue Forms 和 Pull Request 模板，便于公开协作时收集复现、验收、验证及风险信息。
+- 线上页面底部展示 `© 2026 StarLine · MIT License`，Pages artifact 同步包含 `LICENSE`，避免线上许可证链接失效。
 
 ## 关键决策
 
@@ -33,6 +36,7 @@
 - GitHub 项目索引由 Actions 生成；私有仓库和隐藏仓库只在生成阶段排除，不把名称写入公开数据。
 - 项目补充介绍不写回 Actions 生成的 `data/github-projects.json`，避免每日刷新覆盖人工维护的 README 引导。
 - 不引入跨仓库 PAT 或 Webhook；其他仓库提交通过每 6 小时的无密钥聚合进入 Pages，不宣称秒级实时。
+- MIT 只覆盖版权方原创且有权授权的代码、样式、脚本和项目文档；外部链接、项目元数据、商标和第三方材料不因进入索引而改变权属。
 
 ## 核心文件
 
@@ -43,6 +47,8 @@
 - `knowledge-map.js`、`project-map.js`：知识关系图和 GitHub 项目关系图。
 - `data/notes.json`、`data/github-projects.json`、`data/project-guides.json`、`data/relations.json`：正式笔记、公开项目索引、人工项目介绍和确认关系。
 - `.github/workflows/deploy-pages.yml`：每 6 小时索引刷新、静态校验和 Pages 发布。
+- `LICENSE`、README 的“版权与许可证”章节：MIT 法律文本、版权主体和第三方授权边界。
+- `.github/ISSUE_TEMPLATE/`、`.github/PULL_REQUEST_TEMPLATE.md`：公开 Issue 与 PR 的结构化协作入口。
 
 ## 验证
 
@@ -51,6 +57,7 @@
 - `node tests/browser-smoke.mjs`：通过；新增覆盖更多菜单默认状态、外部点击、`Esc` 焦点恢复、目录明确展开入口和分类滚动边界，并继续覆盖 390px 响应式交互。
 - 新版同步脚本使用当前 GitHub 账号完成只读实测：29 个公开仓库、14 个自建项目、近 30 天匹配提交 49 次；输出仅写入本机临时审计文件。
 - `git diff --check`：通过；PowerShell 仅报告现有 LF/CRLF 转换提醒。
+- 许可证契约测试已检查 MIT 标题、版权主体、许可核心条款、README 说明、Pages 入口以及 Issue/PR 模板。
 - 本机 ChromeGo Chromium 已检查 Atelier 首页和项目区截图；目录内容完整、更多菜单默认关闭，当前工作区页面级横向溢出为 0。
 
 ## 已知边界与下一步

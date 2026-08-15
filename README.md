@@ -1,5 +1,7 @@
 # 墨卷 · 学习笔记管理台
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-1677ff.svg)](LICENSE)
+
 一个不依赖构建工具、可直接部署到 GitHub Pages 的学习笔记网页目录。正式数据来自 `data/notes.json`；浏览器编辑只生成本地草稿，不会也不应该直接持有 GitHub Token。
 
 GitHub Actions 会读取 `FreeCodeCampXYG` 的公开仓库并生成 `data/github-projects.json`。页面默认展示全部自建项目，并可切换到已部署 Pages、Fork 项目和我的 Star；私有仓库不会进入公开索引。
@@ -125,6 +127,18 @@ https://FreeCodeCampXYG.github.io/starline-learning-view/
 - “保存到本机”不等于云同步；远程变更必须通过 Git / PR 或受控后端完成。
 - 外部链接使用 `noopener noreferrer`。
 - 示例 URL 指向用户的 GitHub Pages 根地址，链接状态需在替换为正式笔记 URL 后重新核验。
+
+## 版权与许可证
+
+Copyright © 2026 StarLine（GitHub：FreeCodeCampXYG）。
+
+除另有明确说明外，本仓库由版权方原创并有权授权的源代码、界面样式、脚本和项目文档采用 [MIT License](LICENSE)。MIT 允许使用、复制、修改、合并、发布、分发、再许可和销售副本，但副本或实质性部分必须保留原版权声明与许可声明；软件按“原样”提供，不附带任何保证。完整法律文本以根目录 `LICENSE` 为准。
+
+授权边界：
+
+- GitHub 仓库描述、外部网页链接和自动聚合的公开项目元数据仅用于索引与跳转，不主张其版权归本项目所有。
+- 第三方项目名称、商标、课程材料、图片以及链接页面内容仍归各自权利人所有，并遵循其原始许可或使用条款。
+- 后续加入非原创内容时，应在相应文件或说明中标注来源和许可证；MIT 不会覆盖无权再许可的第三方内容。
 
 ## 开源先例
 
