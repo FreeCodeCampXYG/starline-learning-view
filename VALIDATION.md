@@ -49,8 +49,10 @@
 
 ## 线上与真实数据核验
 
+- 2026-08-16，提交 `ad13418` 已推送到 `origin/main`；GitHub Pages Actions 运行 `31894996210` 的校验、构建与部署任务全部成功。
+- 使用带时间戳的线上请求抽查 Pages：HTML 已包含 `openSidebarLabel` 和 `actionMenu`，线上 `app.js` 已包含 `closeActionMenu`，确认 CDN 返回本轮版本。
 - 2026-08-15 读取线上 Pages 项目索引成功：`generatedAt` 为 `2026-08-15T03:08:10Z`，包含 29 个公开仓库、14 个自建项目和 7 个 Pages 项目。
-- 最近两次定时 Actions 均成功；最新核验运行是 `https://github.com/FreeCodeCampXYG/starline-learning-view/actions/runs/31860998261`。
+- 此前两次定时 Actions 均成功；已核验的定时运行包括 `https://github.com/FreeCodeCampXYG/starline-learning-view/actions/runs/31860998261`。
 - 新版同步脚本通过当前 GitHub 账号完成只读实测，临时输出包含 29 个公开仓库、近 30 天匹配提交 49 次，所有仓库提交统计均有确定结果。
 - 使用该临时新索引搭建独立静态站点后，真实 Chromium 烟测通过；近 30 天提交最多的项目能自动进入前四个近期优先项目。
 
@@ -71,6 +73,5 @@
 ## 未验证边界
 
 - 示例笔记 URL 当前指向用户的 GitHub Pages 根地址，不是最终文章地址，需替换后重新做线上链接健康检查。
-- 本次验证针对本地工作区；当前改动尚未推送，代码推送后的新版界面仍需等待 Actions 部署完成后复核。
 - 页面不会测试或存储 GitHub 写凭据；正式发布必须通过 Git / PR。
 - 仓库当前没有 `scripts/validate_notes.py`；笔记数据契约由现有单元测试和静态检查覆盖，未把不存在的独立验证命令记为通过。
