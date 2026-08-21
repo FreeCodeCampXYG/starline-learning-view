@@ -170,8 +170,8 @@ body.sidebar-collapsed .app-shell { grid-template-columns: 0 minmax(0, 1fr); }
   font-size: 12px;
   color: var(--ink-faint);
 }
-.site-footer a { color: var(--ink-muted); text-decoration: underline; text-underline-offset: 3px; }
-.site-footer a:hover { color: var(--ink); }
+.site-footer a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
+.site-footer a:hover { color: var(--accent); }
 
 /* ══════════════════════════════════════════════════════════════════════════
    4 · 组件
@@ -1070,7 +1070,8 @@ select {
 .project-trace-mark { flex-shrink: 0; font-size: 18px; line-height: 1; color: var(--ink-faint); }
 .project-trace-note strong { display: block; margin-bottom: 2px; }
 .project-trace-note p { margin: 0; color: var(--ink-muted); }
-.project-trace-note > a { flex-shrink: 0; font-size: 12px; color: var(--ink-muted); text-decoration: underline; text-underline-offset: 3px; }
+.project-trace-note > a { flex-shrink: 0; font-size: 12px; font-weight: 600; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
+.project-trace-note > a:hover { color: var(--accent); }
 
 .project-spotlight { margin-top: 24px; }
 .project-spotlight-main { margin-bottom: 20px; }
@@ -1231,7 +1232,8 @@ select {
 .project-badges { display: flex; flex-wrap: wrap; gap: 5px; }
 .project-badges span { padding: 3px 10px; border-radius: 100px; background: var(--surface-soft); color: var(--ink-muted); font-size: 11px; }
 .project-upstream { font-size: 12px; color: var(--ink-faint); }
-.project-upstream a { text-decoration: underline; text-underline-offset: 2px; }
+.project-upstream a { color: var(--accent-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.project-upstream a:hover { color: var(--accent); }
 .project-maintenance-line { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 .maintenance-dot { width: 7px; height: 7px; border-radius: 50%; }
 .project-maintenance-line.is-active { color: var(--accent); }
@@ -1247,8 +1249,23 @@ select {
   font-size: 11px;
   color: var(--ink-faint);
 }
-.project-card footer a { padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12px; transition: background .15s; }
-.project-card footer a:hover { background: var(--surface-soft); }
+/* 项目卡片操作链接：蓝色高亮，一眼可识别可点 */
+.project-card footer a {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.project-card footer a:hover { background: var(--accent-soft); color: var(--accent-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent); }
+/* 主操作「打开网站」做成实心高亮按钮 */
+.project-card footer a.project-open {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.project-card footer a.project-open:hover { background: var(--accent-ink); color: var(--bg); box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent); }
 
 .project-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 48px 20px; text-align: center; color: var(--ink-faint); }
 
@@ -1289,7 +1306,8 @@ select {
 .readme-link-arrow { margin-left: auto; font-size: 16px; color: var(--ink-faint); flex-shrink: 0; }
 
 .readme-strip-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 20px; font-size: 12px; color: var(--ink-faint); }
-.readme-strip-footer a { color: var(--ink-muted); text-decoration: underline; text-underline-offset: 3px; }
+.readme-strip-footer a { color: var(--accent-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.readme-strip-footer a:hover { color: var(--accent); }
 .readme-strip-note { width: 100%; font-size: 11px; }
 
 /* —— 5.5 本地内容概览 —— */

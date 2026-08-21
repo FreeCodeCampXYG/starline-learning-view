@@ -15,6 +15,15 @@
   ],
   "entries": [
     {
+      "id": "changelog-2026-08-17-link-highlight",
+      "date": "2026-08-17",
+      "section": "features",
+      "title": "全站链接高亮：蓝色可点击态",
+      "summary": "修复链接缺乏高亮的问题：项目卡片的 README/源码/打开网站、页脚、README 导览底部、项目追溯与上游链接全部改为 accent 高亮色并加粗；「打开网站」升级为实心主按钮。五套主题下链接均清晰可辨。",
+      "tags": ["链接", "可点击态", "设计系统"],
+      "commit": "本轮提交"
+    },
+    {
       "id": "changelog-2026-08-17-redesign",
       "date": "2026-08-17",
       "section": "features",
