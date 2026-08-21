@@ -15,6 +15,15 @@
   ],
   "entries": [
     {
+      "id": "changelog-2026-08-17-pages-carousel",
+      "date": "2026-08-17",
+      "section": "features",
+      "title": "新增首页作品集轮播：已部署站点横向滑屏",
+      "summary": "项目区顶部新增「我的在线作品集」轮播：横向展示所有已部署的 GitHub Pages 站点（滚动吸附 + 左右箭头 + 指示点 + 5 秒自动轮播，悬停暂停），每张卡片含项目名、简介、语言标签与「打开网站」按钮；五套主题各自换肤（Spectrum 深空渐变光晕、Command 终端硬阴影、Blueprint 蓝图偏移投影）。",
+      "tags": ["轮播", "作品集", "GitHub Pages"],
+      "commit": "本轮提交"
+    },
+    {
       "id": "changelog-2026-08-17-link-highlight",
       "date": "2026-08-17",
       "section": "features",

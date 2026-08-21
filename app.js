@@ -142,6 +142,7 @@ function cacheDom() {
     "noteLinkStatus", "noteMinutes", "noteFeatured", "formError", "importButton",
     "exportButton", "importInput", "resetDraftButton", "toast",
     "projectGrid", "projectEmpty", "projectResultCount", "projectSyncText", "projectFreshness", "projectSpotlight",
+    "pagesCarousel", "pagesCarouselTrack", "pagesCarouselDots", "carouselPrev", "carouselNext",
     "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectCommitLabel", "projectCommitHint", "projectStarredCount", "commitScope",
     "projectMaintenanceFocus", "projectMaintenanceSummary", "projectMaintenanceList",
     "projectFilterTabs", "projectTabIndicator", "projectPanel",
@@ -353,6 +354,7 @@ function bindEvents() {
   dom.closeSidebar.addEventListener("click", () => closeSidebar({ restoreFocus: true }));
   dom.sidebarScrim.addEventListener("click", () => closeSidebar({ restoreFocus: true }));
   window.addEventListener("resize", handleSidebarResize);
+  initPagesCarouselControls();
   dom.actionMenu.addEventListener("toggle", syncActionMenuState);
   dom.actionMenu.addEventListener("click", (event) => {
     if (event.target.closest(".action-menu-panel a")) closeActionMenu();
@@ -464,6 +466,7 @@ function renderProjects({ animate = false } = {}) {
 
   const mapActive = state.projectFilter === "map";
   renderProjectSpotlight();
+  renderPagesCarousel();
   dom.projectGrid.hidden = mapActive;
   dom.projectEmpty.hidden = true;
   dom.projectRelationMap.hidden = !mapActive;
@@ -540,6 +543,110 @@ function renderProjectSpotlight() {
     <div><span class="eyebrow">README PATH / 阅读顺序</span><h4>按这个顺序了解项目</h4><p>README 是项目的使用说明和维护入口，先看概览，再看数据与部署。</p></div>
     <ol>${readmeList}</ol>
   </div>`;
+}
+
+let pagesCarouselTimer = null;
+
+function renderPagesCarousel() {
+  if (!dom.pagesCarousel) return;
+  const pages = (state.projects || []).filter((project) => !project.fork && project.hasPages);
+  const visible = pages.length > 0 && state.projectFilter !== "starred";
+  dom.pagesCarousel.hidden = !visible;
+  if (!visible) {
+    stopPagesCarousel();
+    dom.pagesCarouselTrack.replaceChildren();
+    dom.pagesCarouselDots.replaceChildren();
+    return;
+  }
+  dom.pagesCarouselTrack.innerHTML = pages.map((project, index) => {
+    const repoUrl = safeHref(project.repoUrl);
+    const pagesUrl = deriveProjectPagesUrl(project, state.projectPayload?.owner);
+    const badges = [project.language, project.fork ? "Fork" : "自建", ...(project.topics || []).slice(0, 2)]
+      .filter(Boolean).map((badge) => `<span>${escapeHtml(badge)}</span>`).join("");
+    return `<article class="pages-carousel-card" style="--carousel-index:${index}" data-pages-index="${index}">
+      <div class="pages-carousel-card-top"><span class="pages-carousel-card-mark" aria-hidden="true">⌘</span><code>${escapeHtml(project.fullName)}</code></div>
+      <h3>${escapeHtml(project.name)}</h3>
+      <p>${escapeHtml(project.description || "公开项目，详情见源码仓库。")}</p>
+      <div class="pages-carousel-card-badges">${badges}</div>
+      <div class="pages-carousel-card-actions">
+        ${pagesUrl ? `<a class="pages-carousel-open" href="${escapeAttr(pagesUrl)}" target="_blank" rel="noopener noreferrer">打开网站 ↗</a>` : ""}
+        ${repoUrl ? `<a href="${escapeAttr(`${repoUrl}#readme`)}" target="_blank" rel="noopener noreferrer">源码</a>` : ""}
+      </div>
+    </article>`;
+  }).join("");
+  dom.pagesCarouselDots.innerHTML = pages.map((project, index) =>
+    `<button class="carousel-dot" type="button" role="tab" aria-label="第 ${index + 1} 个站点：${escapeHtml(project.name)}" data-pages-index="${index}" ${index === 0 ? 'aria-selected="true"' : ""}></button>`
+  ).join("");
+  dom.pagesCarouselTrack.scrollLeft = 0;
+  syncCarouselDots();
+  startPagesCarousel();
+}
+
+function syncCarouselDots() {
+  if (!dom.pagesCarouselTrack || !dom.pagesCarouselDots) return;
+  const card = dom.pagesCarouselTrack.querySelector(".pages-carousel-card");
+  if (!card) return;
+  const cardStep = card.offsetWidth + parseFloat(getComputedStyle(dom.pagesCarouselTrack).columnGap || "16");
+  const index = Math.round(dom.pagesCarouselTrack.scrollLeft / Math.max(1, cardStep));
+  dom.pagesCarouselDots.querySelectorAll(".carousel-dot").forEach((dot, i) => {
+    const active = i === index;
+    dot.classList.toggle("is-active", active);
+    dot.setAttribute("aria-selected", String(active));
+  });
+}
+
+function startPagesCarousel() {
+  stopPagesCarousel();
+  if (!dom.pagesCarouselTrack || dom.pagesCarouselTrack.scrollWidth <= dom.pagesCarouselTrack.clientWidth) return;
+  pagesCarouselTimer = window.setInterval(() => {
+    const card = dom.pagesCarouselTrack.querySelector(".pages-carousel-card");
+    if (!card) return;
+    const cardStep = card.offsetWidth + parseFloat(getComputedStyle(dom.pagesCarouselTrack).columnGap || "16");
+    const max = dom.pagesCarouselTrack.scrollWidth - dom.pagesCarouselTrack.clientWidth;
+    const next = Math.min(dom.pagesCarouselTrack.scrollLeft + cardStep, max);
+    if (next >= max && dom.pagesCarouselTrack.scrollLeft >= max - 2) {
+      dom.pagesCarouselTrack.scrollTo({ left: 0, behavior: "smooth" });
+    } else {
+      dom.pagesCarouselTrack.scrollTo({ left: next, behavior: "smooth" });
+    }
+  }, 5000);
+}
+
+function stopPagesCarousel() {
+  if (pagesCarouselTimer) { window.clearInterval(pagesCarouselTimer); pagesCarouselTimer = null; }
+}
+
+function initPagesCarouselControls() {
+  if (!dom.carouselPrev || !dom.carouselNext) return;
+  dom.carouselPrev.addEventListener("click", () => {
+    const card = dom.pagesCarouselTrack.querySelector(".pages-carousel-card");
+    if (!card) return;
+    const cardStep = card.offsetWidth + parseFloat(getComputedStyle(dom.pagesCarouselTrack).columnGap || "16");
+    dom.pagesCarouselTrack.scrollBy({ left: -cardStep, behavior: "smooth" });
+  });
+  dom.carouselNext.addEventListener("click", () => {
+    const card = dom.pagesCarouselTrack.querySelector(".pages-carousel-card");
+    if (!card) return;
+    const cardStep = card.offsetWidth + parseFloat(getComputedStyle(dom.pagesCarouselTrack).columnGap || "16");
+    dom.pagesCarouselTrack.scrollBy({ left: cardStep, behavior: "smooth" });
+  });
+  dom.pagesCarouselDots.addEventListener("click", (event) => {
+    const dot = event.target.closest(".carousel-dot");
+    if (!dot) return;
+    const card = dom.pagesCarouselTrack.querySelector(".pages-carousel-card");
+    if (!card) return;
+    const index = Number(dot.dataset.pagesIndex || 0);
+    const cardStep = card.offsetWidth + parseFloat(getComputedStyle(dom.pagesCarouselTrack).columnGap || "16");
+    dom.pagesCarouselTrack.scrollTo({ left: index * cardStep, behavior: "smooth" });
+  });
+  let scrollRaf = 0;
+  dom.pagesCarouselTrack.addEventListener("scroll", () => {
+    window.cancelAnimationFrame(scrollRaf);
+    scrollRaf = window.requestAnimationFrame(syncCarouselDots);
+  }, { passive: true });
+  dom.pagesCarouselTrack.addEventListener("pointerenter", stopPagesCarousel);
+  dom.pagesCarouselTrack.addEventListener("pointerleave", startPagesCarousel);
+  window.addEventListener("resize", () => { syncCarouselDots(); startPagesCarousel(); });
 }
 
 function renderProjectProfileSummary() {
@@ -679,11 +786,15 @@ function renderProjectCard(project, starred = false, index = 0) {
     ${pagesTarget ? `<div class="project-pages-target" title="${escapeAttr(pagesUrl)}"><span>Pages</span><code>${escapeHtml(pagesTarget)}</code></div>` : ""}
     <div class="project-badges">${badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</div>
     ${upstream}
-    <footer><span>${escapeHtml(commitCopy)} · 更新 ${formatTimestampDate(project.updatedAt)}</span><div>
-      ${repoUrl ? `<a href="${escapeAttr(`${repoUrl}#readme`)}" target="_blank" rel="noopener noreferrer">README</a>` : ""}
-      ${repoUrl ? `<a href="${escapeAttr(repoUrl)}" target="_blank" rel="noopener noreferrer">源码</a>` : ""}
+    <footer>
+      <div class="project-card-meta"><span>${escapeHtml(commitCopy)} · 更新 ${formatTimestampDate(project.updatedAt)}</span>
+        <div class="project-card-links">
+          ${repoUrl ? `<a href="${escapeAttr(`${repoUrl}#readme`)}" target="_blank" rel="noopener noreferrer">README</a>` : ""}
+          ${repoUrl ? `<a href="${escapeAttr(repoUrl)}" target="_blank" rel="noopener noreferrer">源码</a>` : ""}
+        </div>
+      </div>
       ${primaryUrl && primaryUrl !== repoUrl ? `<a class="project-open" href="${escapeAttr(primaryUrl)}" target="_blank" rel="noopener noreferrer">${pagesUrl ? "打开网站" : "访问主页"} ↗</a>` : ""}
-    </div></footer>
+    </footer>
   </article>`;
 }
 

@@ -1242,13 +1242,19 @@ select {
 .project-maintenance-line.is-recent .maintenance-dot { background: var(--warning); }
 .project-card footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 4px;
   font-size: 11px;
   color: var(--ink-faint);
 }
+.project-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.project-card-links { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 /* 项目卡片操作链接：蓝色高亮，一眼可识别可点 */
 .project-card footer a {
   padding: 5px 10px;
@@ -1256,11 +1262,18 @@ select {
   font-size: 12px;
   font-weight: 600;
   color: var(--accent-ink);
+  white-space: nowrap;
   transition: background .15s, color .15s, box-shadow .15s;
 }
 .project-card footer a:hover { background: var(--accent-soft); color: var(--accent-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent); }
-/* 主操作「打开网站」做成实心高亮按钮 */
+/* 主操作「打开网站」：独立一行全宽实心按钮 */
 .project-card footer a.project-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 14px;
   background: var(--accent);
   color: var(--bg);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
@@ -1268,6 +1281,92 @@ select {
 .project-card footer a.project-open:hover { background: var(--accent-ink); color: var(--bg); box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent); }
 
 .project-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 48px 20px; text-align: center; color: var(--ink-faint); }
+
+/* —— 5.3.5 已部署站点轮播 —— */
+.pages-carousel { margin: 34px 0 8px; }
+.pages-carousel-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.pages-carousel-head h2 { margin: 6px 0 0; font-size: 24px; font-weight: 650; line-height: 1.15; letter-spacing: var(--title-tracking); }
+.pages-carousel-controls { display: flex; gap: 8px; }
+.carousel-arrow {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-strong);
+  color: var(--ink-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color .2s, color .2s, background .2s, box-shadow .2s, transform .2s;
+}
+.carousel-arrow:hover { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); box-shadow: var(--shadow-1); transform: translateY(-1px); }
+.pages-carousel-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+.pages-carousel-track::-webkit-scrollbar { height: 6px; }
+.pages-carousel-track::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--line-strong); }
+.pages-carousel-card {
+  flex: 0 0 min(400px, 78vw);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow-1);
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+.pages-carousel-card:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: var(--shadow-2); }
+.pages-carousel-card-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pages-carousel-card-mark {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 12px;
+}
+.pages-carousel-card-top code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 11px var(--font-mono); color: var(--ink-faint); }
+.pages-carousel-card h3 { margin: 0; font-family: var(--font-display); font-size: 19px; font-weight: 650; line-height: 1.25; letter-spacing: -.01em; }
+.pages-carousel-card > p { margin: 0; color: var(--ink-muted); font-size: 13px; line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pages-carousel-card-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.pages-carousel-card-badges span { padding: 3px 9px; border-radius: 999px; background: var(--surface-soft); color: var(--ink-muted); font-size: 11px; font-weight: 600; }
+.pages-carousel-card-actions { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+.pages-carousel-card-actions a { padding: 6px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; color: var(--accent-ink); transition: background .15s, color .15s; }
+.pages-carousel-card-actions a:hover { background: var(--accent-soft); }
+.pages-carousel-card-actions a.pages-carousel-open { background: var(--accent); color: var(--bg); box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent); }
+.pages-carousel-card-actions a.pages-carousel-open:hover { background: var(--accent-ink); color: var(--bg); }
+.pages-carousel-dots { display: flex; justify-content: center; gap: 7px; margin-top: 16px; }
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line-strong);
+  cursor: pointer;
+  transition: width .25s, background .25s;
+}
+.carousel-dot.is-active { width: 22px; background: var(--accent); }
 
 /* —— 5.4 README 导览带 —— */
 .readme-strip { margin-top: 60px; padding: 34px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -1605,6 +1704,11 @@ body[data-theme="command"] .note-card h3 { font-size: 16px; }
 body[data-theme="command"] .note-card::before { height: 2px; }
 body[data-theme="command"] .theme-option.is-active,
 body[data-theme="command"] .note-card:hover { box-shadow: 5px 5px 0 color-mix(in srgb, var(--accent) 22%, transparent); }
+body[data-theme="command"] .pages-carousel-card { border-radius: var(--radius); border: 1px solid var(--line-strong); box-shadow: 4px 4px 0 rgba(0, 0, 0, .25); }
+body[data-theme="command"] .pages-carousel-card:hover { box-shadow: 6px 6px 0 color-mix(in srgb, var(--accent) 25%, transparent); }
+body[data-theme="blueprint"] .pages-carousel-card { box-shadow: 4px 4px 0 rgba(38, 105, 189, .1); }
+body[data-theme="blueprint"] .pages-carousel-card:hover { box-shadow: 6px 6px 0 rgba(38, 105, 189, .14); }
+body[data-theme="atlas"] .pages-carousel-card { border-radius: var(--radius-xl); }
 
 /* —— Atlas：柔和知识地图 —— */
 body[data-theme="atlas"] {
@@ -1737,6 +1841,11 @@ body[data-theme="spectrum"] .button-primary:hover { box-shadow: 0 6px 28px rgba(
 /* 视觉重心：主标题纯白 + 紫色微光 */
 body[data-theme="spectrum"] .page-heading h1 { color: #ffffff; text-shadow: 0 0 40px rgba(141, 112, 255, .28); }
 body[data-theme="spectrum"] .page-heading h1 em { color: #c4b5fd; }
+/* 轮播卡片深空渐变 + 光晕 */
+body[data-theme="spectrum"] .pages-carousel-card { background: linear-gradient(150deg, var(--surface-strong), color-mix(in srgb, var(--surface) 82%, #7d5cff)); }
+body[data-theme="spectrum"] .pages-carousel-card:hover { box-shadow: 0 12px 40px rgba(141, 112, 255, .25), var(--shadow-2); }
+body[data-theme="spectrum"] .pages-carousel-card-mark { background: rgba(141, 112, 255, .18); }
+body[data-theme="spectrum"] .pages-carousel-card-actions a.pages-carousel-open { background: linear-gradient(135deg, #7658ef, #27a9c1); box-shadow: 0 4px 18px rgba(141, 112, 255, .4); }
 body[data-theme="spectrum"] .note-card { background: linear-gradient(145deg, var(--surface-strong), color-mix(in srgb, var(--surface) 88%, #7d5cff)); }
 body[data-theme="spectrum"] .note-card::before { background: linear-gradient(90deg, #8d70ff, #22b8c7, #f06f8c); }
 body[data-theme="spectrum"] .timeline-card,
@@ -1805,6 +1914,8 @@ body[data-theme="spectrum"] .notification-panel { background: color-mix(in srgb,
   .top-actions .mobile-menu span + span { display: none; }
   .top-actions .mobile-menu { padding: 0 11px; }
   .library-toolbar { flex-direction: column; align-items: flex-start; }
+  .pages-carousel-head { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .pages-carousel-card { flex-basis: 80vw; }
   .toolbar-tail { width: 100%; justify-content: space-between; }
   .notes-grid { grid-template-columns: 1fr; }
   .notes-grid.is-list .note-card { grid-template-columns: 1fr; gap: 6px; min-height: 0; }
