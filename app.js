@@ -1373,7 +1373,7 @@ function syncSidebarControls() {
   dom.openSidebar.setAttribute("aria-expanded", String(expanded));
   dom.openSidebar.setAttribute("aria-label", expanded ? "收起分类导航" : "打开分类导航");
   dom.openSidebarLabel.textContent = expanded ? "收起目录" : "展开目录";
-  dom.openSidebarIcon.textContent = expanded ? "←" : "→";
+  dom.openSidebarIcon.textContent = expanded ? "«" : "»";
   dom.collapseSidebar.setAttribute("aria-label", isDrawerSidebar() ? "关闭分类导航" : "收起分类导航");
   dom.collapseSidebar.title = isDrawerSidebar() ? "关闭分类导航" : "收起分类导航";
 }

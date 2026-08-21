@@ -212,28 +212,43 @@ body.sidebar-collapsed .app-shell { grid-template-columns: 0 minmax(0, 1fr); }
 .brand strong { font-size: 17px; letter-spacing: var(--title-tracking); }
 .brand > div:last-child > span { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
 
+/* 搜索框：精致胶囊，焦点时柔和发光 */
 .global-search {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-height: 42px;
-  padding: 0 14px;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
   background: var(--surface-soft);
-  transition: border-color .2s, box-shadow .2s, background .2s;
+  cursor: text;
+  transition: border-color .22s, box-shadow .22s, background .22s, transform .22s;
 }
-.global-search:focus-within { border-color: var(--accent); background: var(--surface-strong); box-shadow: var(--shadow-color); }
-.global-search svg { flex-shrink: 0; width: 18px; height: 18px; fill: none; stroke: var(--ink-muted); stroke-width: 2; }
-.global-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-size: 14px; outline: 0; }
+.global-search:hover { border-color: var(--line-strong); background: var(--surface-strong); }
+.global-search:focus-within {
+  border-color: var(--accent);
+  background: var(--surface-strong);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent), var(--shadow-1);
+  transform: translateY(-1px);
+}
+.global-search svg { flex-shrink: 0; width: 16px; height: 16px; fill: none; stroke: var(--ink-faint); stroke-width: 2.2; transition: stroke .2s; }
+.global-search:focus-within svg { stroke: var(--accent); }
+.global-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-size: 13.5px; outline: 0; }
 .global-search input::placeholder { color: var(--ink-faint); }
 .global-search kbd {
   flex-shrink: 0;
-  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 7px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  font: 11px/1 var(--font-mono);
+  border-radius: 7px;
+  background: var(--surface-strong);
+  font: 600 10px/1 var(--font-body);
+  letter-spacing: .02em;
   color: var(--ink-faint);
+  box-shadow: 0 1px 0 var(--line);
 }
 
 .top-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
@@ -319,7 +334,32 @@ body.sidebar-collapsed .app-shell { grid-template-columns: 0 minmax(0, 1fr); }
   overflow: hidden;
   scrollbar-gutter: stable;
 }
-.sidebar-mobile-head { display: none; }
+/* 侧栏头部：桌面端显示标题 + 右上角收起按钮 */
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.sidebar-head > strong {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: .02em;
+  color: var(--ink);
+}
+.sidebar-head-actions { display: flex; gap: 5px; }
+.sidebar-head .icon-button {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-faint);
+  font-size: 14px;
+}
+.sidebar-head .icon-button:hover { color: var(--ink); background: var(--surface-soft); box-shadow: none; }
+/* 桌面端：关闭按钮仅移动端抽屉使用 */
+.sidebar-head #closeSidebar { display: none; }
 .sidebar-scroll {
   display: flex;
   flex-direction: column;
@@ -1491,9 +1531,10 @@ body[data-theme="atelier"] {
   --surface: #fbfcfe;
   --surface-strong: #ffffff;
   --surface-soft: #eef2f7;
-  --ink: #14202e;
-  --ink-muted: #5c6b7e;
-  --ink-faint: #93a1b3;
+  /* 文字三层：标题墨蓝 → 正文灰蓝 → 弱文字退隐 */
+  --ink: #0c1a2b;
+  --ink-muted: #55677c;
+  --ink-faint: #9aa8ba;
   --line: rgba(20, 32, 46, .10);
   --line-strong: rgba(20, 32, 46, .18);
   --accent: #2563eb;
@@ -1518,9 +1559,9 @@ body[data-theme="command"] {
   --surface: #0e151a;
   --surface-strong: #111a20;
   --surface-soft: #19232a;
-  --ink: #dbe8e5;
-  --ink-muted: #849893;
-  --ink-faint: #5c716c;
+  --ink: #e8f5ee;
+  --ink-muted: #7e978e;
+  --ink-faint: #4d6159;
   --line: #233139;
   --line-strong: #3a4b53;
   --accent: #72e5a4;
@@ -1553,9 +1594,9 @@ body[data-theme="atlas"] {
   --surface: #f6f8f2;
   --surface-strong: #fcfdf9;
   --surface-soft: #e5eadf;
-  --ink: #2e3e34;
-  --ink-muted: #6b796f;
-  --ink-faint: #929d92;
+  --ink: #243229;
+  --ink-muted: #61705f;
+  --ink-faint: #96a094;
   --line: #d4ddce;
   --line-strong: #b5c4b1;
   --accent: #80659a;
@@ -1590,9 +1631,9 @@ body[data-theme="blueprint"] {
   --surface: #f4f8ff;
   --surface-strong: #f9fbff;
   --surface-soft: #e0ecfb;
-  --ink: #163e73;
-  --ink-muted: #587497;
-  --ink-faint: #879db8;
+  --ink: #0f3562;
+  --ink-muted: #4f6c94;
+  --ink-faint: #8fa4c0;
   --line: #aec6e5;
   --line-strong: #7197c7;
   --accent: #2669bd;
@@ -1628,29 +1669,32 @@ body[data-theme="blueprint"] .note-card::after {
 /* —— Spectrum：深空能量场 · 玻璃拟态 —— */
 body[data-theme="spectrum"] {
   color-scheme: dark;
-  --bg: #0c1020;
-  --surface: #12182b;
-  --surface-strong: #171e34;
-  --surface-soft: #202944;
-  --ink: #f0f2fb;
-  --ink-muted: #9fa8c2;
-  --ink-faint: #6e7895;
-  --line: #2b3553;
-  --line-strong: #495678;
+  /* 深空三层递进：背景最暗 → 卡片略亮 → 强调最亮 */
+  --bg: #0a0d18;
+  --surface: #10162a;
+  --surface-strong: #161d36;
+  --surface-soft: #1a2242;
+  /* 文字三层明暗：标题纯白 → 正文柔白 → 弱文字退隐 */
+  --ink: #f5f7ff;
+  --ink-muted: #a8b2d1;
+  --ink-faint: #6a7392;
+  --line: #232c4a;
+  --line-strong: #3a4670;
+  /* 紫色 accent + 柔和光晕 */
   --accent: #8d70ff;
-  --accent-soft: #2d2557;
-  --accent-ink: #b8a8ff;
-  --success: #50d0ae;
-  --warning: #f2b85f;
-  --danger: #f06f8c;
+  --accent-soft: #241d4d;
+  --accent-ink: #c4b5fd;
+  --success: #4ade9e;
+  --warning: #fbbf5a;
+  --danger: #f4728f;
   --focus: #5ac5e7;
   --radius-sm: 10px;
   --radius: 14px;
   --radius-lg: 20px;
   --radius-xl: 28px;
-  --shadow-1: 0 2px 8px rgba(0, 0, 0, .25);
-  --shadow-2: 0 8px 28px rgba(0, 0, 0, .35);
-  --shadow-3: 0 18px 56px rgba(0, 0, 0, .45);
+  --shadow-1: 0 2px 8px rgba(0, 0, 0, .28);
+  --shadow-2: 0 8px 28px rgba(0, 0, 0, .38);
+  --shadow-3: 0 18px 56px rgba(0, 0, 0, .5);
   --font-display: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
   --sidebar-width: 272px;
   --card-min: 320px;
@@ -1667,11 +1711,14 @@ body[data-theme="spectrum"]::before {
     radial-gradient(ellipse 60% 45% at 88% 30%, rgba(34, 184, 199, .10), transparent 50%),
     radial-gradient(ellipse 55% 45% at 50% 100%, rgba(236, 94, 143, .07), transparent 55%);
 }
-body[data-theme="spectrum"] .topbar { background: rgba(12, 16, 32, .78); }
+body[data-theme="spectrum"] .topbar { background: rgba(10, 13, 24, .82); }
 body[data-theme="spectrum"] .brand-mark,
 body[data-theme="spectrum"] .source-icon,
-body[data-theme="spectrum"] .button-primary { background: linear-gradient(135deg, #7658ef, #27a9c1); }
-body[data-theme="spectrum"] .page-heading h1 em { color: #b8a8ff; }
+body[data-theme="spectrum"] .button-primary { background: linear-gradient(135deg, #7658ef, #27a9c1); box-shadow: 0 4px 20px rgba(141, 112, 255, .35); }
+body[data-theme="spectrum"] .button-primary:hover { box-shadow: 0 6px 28px rgba(141, 112, 255, .5); }
+/* 视觉重心：主标题纯白 + 紫色微光 */
+body[data-theme="spectrum"] .page-heading h1 { color: #ffffff; text-shadow: 0 0 40px rgba(141, 112, 255, .28); }
+body[data-theme="spectrum"] .page-heading h1 em { color: #c4b5fd; }
 body[data-theme="spectrum"] .note-card { background: linear-gradient(145deg, var(--surface-strong), color-mix(in srgb, var(--surface) 88%, #7d5cff)); }
 body[data-theme="spectrum"] .note-card::before { background: linear-gradient(90deg, #8d70ff, #22b8c7, #f06f8c); }
 body[data-theme="spectrum"] .timeline-card,
@@ -1688,13 +1735,9 @@ body[data-theme="spectrum"] .notification-panel { background: color-mix(in srgb,
   .topbar { grid-template-columns: auto minmax(260px, 1fr) auto; gap: 14px; }
   .app-shell { grid-template-columns: 1fr; }
   .sidebar { display: none; }
-  .sidebar-mobile-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 18px;
-  }
+  .sidebar-head { margin-bottom: 18px; }
   .sidebar-head-actions { display: flex; gap: 6px; }
+  .sidebar-head #closeSidebar { display: inline-flex; }
   body.sidebar-open .sidebar {
     display: flex;
     position: fixed;
