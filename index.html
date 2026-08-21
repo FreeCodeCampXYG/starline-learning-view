@@ -63,7 +63,7 @@
           <button class="smart-nav-item" type="button" data-smart-view="attention"><span class="smart-icon" aria-hidden="true">!</span><span>需要处理</span><b id="navAttention">0</b></button>
           <button class="smart-nav-item" type="button" data-smart-view="draft"><span class="smart-icon" aria-hidden="true">○</span><span>本地草稿</span><b id="navDraft">0</b></button>
           <a class="smart-nav-item smart-nav-link" href="#projectHeading"><span class="smart-icon" aria-hidden="true">⌘</span><span>GitHub 项目</span><b id="navProjects">0</b></a>
-          <a class="smart-nav-item smart-nav-link" href="#changelogHeading"><span class="smart-icon" aria-hidden="true">◈</span><span>变更记录</span><b id="navChangelog">0</b></a>
+          <button class="smart-nav-item smart-nav-link" type="button" id="openTimelineSidebar"><span class="smart-icon" aria-hidden="true">◈</span><span>变更记录</span><b id="navChangelog">0</b></button>
         </nav>
 
         <nav class="side-section" aria-labelledby="categoryHeading">
@@ -108,26 +108,44 @@
         </div>
       </section>
 
-      <!-- 变更记录：时间线展示（功能更新 + 系统说明 双区块） -->
-      <section class="changelog-section" aria-labelledby="changelogHeading">
-        <div class="changelog-head">
-          <div>
-            <span class="eyebrow">CHANGELOG / 变更记录</span>
-            <h2 id="changelogHeading">更新与说明</h2>
-            <p>以时间线回溯每一次功能更新，并沉淀数据口径、隐私边界与维护方式等系统说明。</p>
-          </div>
+      <!-- 变更记录：顶部公告条（不占主界面），点击展开时间线对话框 -->
+      <section class="changelog-banner" aria-labelledby="changelogHeading">
+        <div class="changelog-banner-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
+        </div>
+        <div class="changelog-banner-copy">
+          <span class="eyebrow">CHANGELOG · 变更记录</span>
+          <h2 id="changelogHeading">更新与说明</h2>
+          <p id="changelogStatus" role="status" aria-live="polite">正在读取变更记录…</p>
+        </div>
+        <div class="changelog-banner-actions">
           <div class="changelog-switch" role="tablist" aria-label="切换变更记录区块">
             <button class="changelog-tab is-active" type="button" role="tab" aria-selected="true" data-changelog-section="features" id="changelogTabFeatures">功能更新</button>
             <button class="changelog-tab" type="button" role="tab" aria-selected="false" tabindex="-1" data-changelog-section="system" id="changelogTabSystem">系统说明</button>
           </div>
+          <button class="changelog-open" id="changelogOpen" type="button">查看全部 <span aria-hidden="true">↗</span></button>
         </div>
-        <p class="changelog-status" id="changelogStatus" role="status" aria-live="polite">正在读取变更记录…</p>
+      </section>
+
+      <dialog class="timeline-dialog" id="timelineDialog" aria-labelledby="timelineDialogTitle">
+        <header class="timeline-dialog-header">
+          <div>
+            <span class="eyebrow">CHANGELOG · 变更记录</span>
+            <h2 id="timelineDialogTitle">更新与说明</h2>
+          </div>
+          <button class="dialog-close" id="closeTimeline" type="button" aria-label="关闭变更记录">×</button>
+        </header>
+        <div class="timeline-dialog-switch" role="tablist" aria-label="切换变更记录区块">
+          <button class="changelog-tab is-active" type="button" role="tab" aria-selected="true" data-changelog-section="features" id="changelogTabFeaturesDialog">功能更新</button>
+          <button class="changelog-tab" type="button" role="tab" aria-selected="false" tabindex="-1" data-changelog-section="system" id="changelogTabSystemDialog">系统说明</button>
+        </div>
+        <p class="changelog-status" id="changelogStatusDetail" role="status" aria-live="polite"></p>
         <ol class="timeline" id="timeline" aria-live="polite"></ol>
         <div class="timeline-empty" id="timelineEmpty" hidden>
           <strong>当前区块暂无记录</strong>
           <span>可切换「功能更新」与「系统说明」查看全部条目。</span>
         </div>
-      </section>
+      </dialog>
 
       <section class="project-section" aria-labelledby="projectHeading">
         <div class="library-head project-head">

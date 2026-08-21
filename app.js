@@ -155,7 +155,9 @@ function cacheDom() {
     "knowledgeMapSummary", "knowledgeMapStatus", "knowledgeMapDetail", "knowledgeMapVisibleCount",
     "knowledgeMapNodeList",
     "changelogHeading", "changelogStatus", "changelogTabFeatures", "changelogTabSystem",
-    "timeline", "timelineEmpty", "navChangelog"
+    "changelogTabFeaturesDialog", "changelogTabSystemDialog", "changelogStatusDetail",
+    "timeline", "timelineEmpty", "navChangelog", "timelineDialog", "closeTimeline",
+    "changelogOpen", "openTimelineSidebar"
   ].forEach((id) => { dom[id] = document.getElementById(id); });
 }
 
@@ -276,19 +278,35 @@ function bindEvents() {
   document.querySelectorAll("[data-changelog-section]").forEach((button) => {
     button.addEventListener("click", () => activateChangelogSection(button.dataset.changelogSection));
   });
-  dom.changelogTabFeatures.addEventListener("keydown", (event) => {
-    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-    const tabs = [dom.changelogTabFeatures, dom.changelogTabSystem];
-    const currentIndex = tabs.indexOf(document.activeElement);
-    if (currentIndex < 0) return;
-    event.preventDefault();
-    let nextIndex = currentIndex;
-    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
-    if (event.key === "Home") nextIndex = 0;
-    if (event.key === "End") nextIndex = tabs.length - 1;
-    activateChangelogSection(tabs[nextIndex].dataset.changelogSection);
-    tabs[nextIndex].focus();
+  const changelogTabGroups = [
+    [dom.changelogTabFeatures, dom.changelogTabSystem],
+    [dom.changelogTabFeaturesDialog, dom.changelogTabSystemDialog]
+  ];
+  changelogTabGroups.forEach((tabs) => {
+    tabs.forEach((tab) => {
+      tab.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        const currentIndex = tabs.indexOf(document.activeElement);
+        if (currentIndex < 0) return;
+        event.preventDefault();
+        let nextIndex = currentIndex;
+        if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+        if (event.key === "Home") nextIndex = 0;
+        if (event.key === "End") nextIndex = tabs.length - 1;
+        activateChangelogSection(tabs[nextIndex].dataset.changelogSection);
+        tabs[nextIndex].focus();
+      });
+    });
+  });
+  dom.changelogOpen.addEventListener("click", openTimelineDialog);
+  dom.openTimelineSidebar.addEventListener("click", () => {
+    closeSidebar();
+    openTimelineDialog();
+  });
+  dom.closeTimeline.addEventListener("click", () => dom.timelineDialog.close());
+  dom.timelineDialog.addEventListener("click", (event) => {
+    if (event.target === dom.timelineDialog) dom.timelineDialog.close();
   });
 
   dom.appearanceButton.addEventListener("click", () => dom.appearanceDialog.showModal());
@@ -837,10 +855,16 @@ function activateChangelogSection(section) {
   renderChangelog();
 }
 
+function openTimelineDialog() {
+  renderChangelog();
+  dom.timelineDialog.showModal();
+}
+
 function renderChangelog() {
   const payload = state.changelog;
   const section = state.changelogSection;
-  dom.navChangelog.textContent = payload ? String(payload.entries.length) : "—";
+  const count = payload ? payload.entries.length : null;
+  dom.navChangelog.textContent = count === null ? "—" : String(count);
   document.querySelectorAll("[data-changelog-section]").forEach((button) => {
     const active = button.dataset.changelogSection === section;
     button.classList.toggle("is-active", active);
@@ -849,7 +873,9 @@ function renderChangelog() {
   });
 
   if (!payload) {
-    dom.changelogStatus.textContent = "变更记录暂未载入；可稍后刷新重试。";
+    const fallback = "变更记录暂未载入；可稍后刷新重试。";
+    dom.changelogStatus.textContent = fallback;
+    if (dom.changelogStatusDetail) dom.changelogStatusDetail.textContent = fallback;
     dom.timeline.replaceChildren();
     dom.timelineEmpty.hidden = false;
     return;
@@ -859,9 +885,20 @@ function renderChangelog() {
   const entries = (payload.entries || [])
     .filter((entry) => entry.section === section)
     .sort((a, b) => compareDateDesc(a.date, b.date));
-  dom.changelogStatus.textContent = sectionMeta
-    ? `${sectionMeta.label} · ${entries.length} 条 · ${sectionMeta.description}`
-    : `${entries.length} 条记录`;
+  const latest = entries[0];
+
+  // 顶部公告条：显示最新一条摘要 + 总数
+  const bannerCopy = latest
+    ? `最新：${latest.title}（${formatDate(latest.date)}）`
+    : "暂无记录";
+  dom.changelogStatus.textContent = `${bannerCopy} · 共 ${count} 条记录`;
+
+  // 时间线对话框：完整列表
+  if (dom.changelogStatusDetail) {
+    dom.changelogStatusDetail.textContent = sectionMeta
+      ? `${sectionMeta.label} · ${entries.length} 条 · ${sectionMeta.description}`
+      : `${entries.length} 条记录`;
+  }
   dom.timelineEmpty.hidden = entries.length > 0;
   dom.timeline.innerHTML = entries.map((entry, index) => renderTimelineItem(entry, index)).join("");
 }
