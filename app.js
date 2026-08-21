@@ -157,7 +157,9 @@ function cacheDom() {
     "changelogHeading", "changelogStatus", "changelogTabFeatures", "changelogTabSystem",
     "changelogTabFeaturesDialog", "changelogTabSystemDialog", "changelogStatusDetail",
     "timeline", "timelineEmpty", "navChangelog", "timelineDialog", "closeTimeline",
-    "changelogOpen", "openTimelineSidebar"
+    "changelogOpen", "openTimelineSidebar",
+    "notificationMenu", "notificationBell", "changelogBadge", "notificationPreview",
+    "heroStatNotes", "heroStatProjects", "heroStatChangelog"
   ].forEach((id) => { dom[id] = document.getElementById(id); });
 }
 
@@ -299,7 +301,10 @@ function bindEvents() {
       });
     });
   });
-  dom.changelogOpen.addEventListener("click", openTimelineDialog);
+  dom.changelogOpen.addEventListener("click", () => {
+    closeNotificationMenu();
+    openTimelineDialog();
+  });
   dom.openTimelineSidebar.addEventListener("click", () => {
     closeSidebar();
     openTimelineDialog();
@@ -307,6 +312,15 @@ function bindEvents() {
   dom.closeTimeline.addEventListener("click", () => dom.timelineDialog.close());
   dom.timelineDialog.addEventListener("click", (event) => {
     if (event.target === dom.timelineDialog) dom.timelineDialog.close();
+  });
+  dom.notificationMenu.addEventListener("toggle", syncNotificationMenuState);
+  document.addEventListener("click", (event) => {
+    if (dom.notificationMenu.open && !dom.notificationMenu.contains(event.target)) closeNotificationMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !dom.notificationMenu.open) return;
+    event.preventDefault();
+    closeNotificationMenu({ restoreFocus: true });
   });
 
   dom.appearanceButton.addEventListener("click", () => dom.appearanceDialog.showModal());
@@ -708,6 +722,15 @@ function renderStats() {
   dom.navFeatured.textContent = String(state.notes.filter((note) => note.featured).length);
   dom.navAttention.textContent = String(attentionCount);
   dom.navDraft.textContent = String(state.notes.filter((note) => note.status === "draft").length);
+  renderHeroStats();
+}
+
+function renderHeroStats() {
+  const projects = state.projects.length + state.starredProjects.length;
+  const changelogs = state.changelog ? state.changelog.entries.length : 0;
+  if (dom.heroStatNotes) dom.heroStatNotes.textContent = String(state.notes.length);
+  if (dom.heroStatProjects) dom.heroStatProjects.textContent = String(projects);
+  if (dom.heroStatChangelog) dom.heroStatChangelog.textContent = String(changelogs);
 }
 
 function renderSmartNav() {
@@ -855,6 +878,19 @@ function activateChangelogSection(section) {
   renderChangelog();
 }
 
+function syncNotificationMenuState() {
+  const expanded = dom.notificationMenu.open;
+  dom.notificationBell.setAttribute("aria-expanded", String(expanded));
+  dom.notificationBell.setAttribute("aria-label", expanded ? "关闭更新与说明" : "查看更新与说明");
+}
+
+function closeNotificationMenu({ restoreFocus = false } = {}) {
+  if (!dom.notificationMenu.open) return;
+  dom.notificationMenu.open = false;
+  syncNotificationMenuState();
+  if (restoreFocus) dom.notificationBell.focus();
+}
+
 function openTimelineDialog() {
   renderChangelog();
   dom.timelineDialog.showModal();
@@ -865,6 +901,8 @@ function renderChangelog() {
   const section = state.changelogSection;
   const count = payload ? payload.entries.length : null;
   dom.navChangelog.textContent = count === null ? "—" : String(count);
+  dom.changelogBadge.hidden = count === null;
+  if (count !== null) dom.changelogBadge.textContent = String(count);
   document.querySelectorAll("[data-changelog-section]").forEach((button) => {
     const active = button.dataset.changelogSection === section;
     button.classList.toggle("is-active", active);
@@ -876,6 +914,7 @@ function renderChangelog() {
     const fallback = "变更记录暂未载入；可稍后刷新重试。";
     dom.changelogStatus.textContent = fallback;
     if (dom.changelogStatusDetail) dom.changelogStatusDetail.textContent = fallback;
+    dom.notificationPreview.replaceChildren();
     dom.timeline.replaceChildren();
     dom.timelineEmpty.hidden = false;
     return;
@@ -887,11 +926,15 @@ function renderChangelog() {
     .sort((a, b) => compareDateDesc(a.date, b.date));
   const latest = entries[0];
 
-  // 顶部公告条：显示最新一条摘要 + 总数
-  const bannerCopy = latest
+  // 通知面板：最新摘要 + 最近 3 条预览
+  dom.changelogStatus.textContent = latest
     ? `最新：${latest.title}（${formatDate(latest.date)}）`
     : "暂无记录";
-  dom.changelogStatus.textContent = `${bannerCopy} · 共 ${count} 条记录`;
+  dom.notificationPreview.innerHTML = entries.slice(0, 3).map((entry) => `
+    <li>
+      <time datetime="${escapeAttr(entry.date)}">${escapeHtml(formatDate(entry.date))}</time>
+      <span>${escapeHtml(entry.title)}</span>
+    </li>`).join("");
 
   // 时间线对话框：完整列表
   if (dom.changelogStatusDetail) {

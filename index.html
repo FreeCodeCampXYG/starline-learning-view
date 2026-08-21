@@ -32,6 +32,28 @@
         <span class="sidebar-toggle-icon" id="openSidebarIcon" aria-hidden="true">←</span>
         <span id="openSidebarLabel">收起目录</span>
       </button>
+
+      <!-- 通知更新：顶部菜单栏通知入口 -->
+      <details class="notification-menu" id="notificationMenu">
+        <summary class="button button-quiet notification-bell" id="notificationBell" aria-label="查看更新与说明" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.7 21a2 2 0 0 1-3.4 0"></path></svg>
+          <span class="notification-badge" id="changelogBadge" hidden>0</span>
+        </summary>
+        <div class="notification-panel">
+          <div class="notification-head">
+            <span class="eyebrow">CHANGELOG · 变更记录</span>
+            <h2 id="changelogHeading">更新与说明</h2>
+          </div>
+          <div class="changelog-switch" role="tablist" aria-label="切换变更记录区块">
+            <button class="changelog-tab is-active" type="button" role="tab" aria-selected="true" data-changelog-section="features" id="changelogTabFeatures">功能更新</button>
+            <button class="changelog-tab" type="button" role="tab" aria-selected="false" tabindex="-1" data-changelog-section="system" id="changelogTabSystem">系统说明</button>
+          </div>
+          <p class="changelog-status" id="changelogStatus" role="status" aria-live="polite">正在读取变更记录…</p>
+          <ul class="notification-preview" id="notificationPreview"></ul>
+          <button class="button button-link notification-open-all" id="changelogOpen" type="button">查看全部 <span aria-hidden="true">↗</span></button>
+        </div>
+      </details>
+
       <button class="button button-quiet appearance-button" id="appearanceButton" type="button" aria-label="打开外观设置">外观</button>
       <details class="action-menu" id="actionMenu">
         <summary class="button button-quiet" id="actionMenuSummary" aria-label="打开更多操作" aria-expanded="false">•••</summary>
@@ -97,36 +119,23 @@
     <button class="sidebar-scrim" id="sidebarScrim" type="button" tabindex="-1" aria-label="关闭分类导航"></button>
 
     <main id="main" class="main-content">
-      <section class="page-heading">
-        <div>
+      <section class="page-heading hero" aria-labelledby="heroTitle">
+        <div class="hero-copy">
           <div class="eyebrow"><span class="pulse-dot"></span><span id="dataModeText">仓库目录</span></div>
-          <h1>学习与项目</h1>
-          <p>先追溯 GitHub 公开资产，再进入本地学习笔记完成阅读与维护。</p>
-        </div>
-        <div class="heading-actions">
-          <a class="button button-primary" href="#projectHeading">查看 GitHub 项目 <span aria-hidden="true">↘</span></a>
-        </div>
-      </section>
-
-      <!-- 变更记录：顶部公告条（不占主界面），点击展开时间线对话框 -->
-      <section class="changelog-banner" aria-labelledby="changelogHeading">
-        <div class="changelog-banner-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
-        </div>
-        <div class="changelog-banner-copy">
-          <span class="eyebrow">CHANGELOG · 变更记录</span>
-          <h2 id="changelogHeading">更新与说明</h2>
-          <p id="changelogStatus" role="status" aria-live="polite">正在读取变更记录…</p>
-        </div>
-        <div class="changelog-banner-actions">
-          <div class="changelog-switch" role="tablist" aria-label="切换变更记录区块">
-            <button class="changelog-tab is-active" type="button" role="tab" aria-selected="true" data-changelog-section="features" id="changelogTabFeatures">功能更新</button>
-            <button class="changelog-tab" type="button" role="tab" aria-selected="false" tabindex="-1" data-changelog-section="system" id="changelogTabSystem">系统说明</button>
+          <h1 id="heroTitle">墨卷·<em>学习与项目</em></h1>
+          <p class="hero-lede"><span class="drop-cap">先</span>追溯 GitHub 公开资产，再进入本地学习笔记完成阅读与维护。以编辑级排版记录每一次迭代，让知识在留白与秩序中生长。</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#projectHeading">查看 GitHub 项目 <span aria-hidden="true">↘</span></a>
           </div>
-          <button class="changelog-open" id="changelogOpen" type="button">查看全部 <span aria-hidden="true">↗</span></button>
         </div>
+        <aside class="hero-stats" aria-label="内容概览">
+          <div class="hero-stat"><strong id="heroStatNotes">0</strong><span>学习笔记</span></div>
+          <div class="hero-stat"><strong id="heroStatProjects">0</strong><span>GitHub 项目</span></div>
+          <div class="hero-stat"><strong id="heroStatChangelog">0</strong><span>变更记录</span></div>
+        </aside>
       </section>
 
+      <!-- 变更记录：完整时间线对话框（由顶部菜单栏通知入口或侧栏入口打开） -->
       <dialog class="timeline-dialog" id="timelineDialog" aria-labelledby="timelineDialogTitle">
         <header class="timeline-dialog-header">
           <div>

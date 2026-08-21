@@ -4,53 +4,57 @@
 
 ## 当前目标
 
-完成项目设计系统 v3 重构：变更记录改为「顶部公告条 + 时间线对话框」形态（不再占据主界面）、CSS 结构彻底重写（消除旧版分裂的 token 与碎片化媒体查询）、全面圆角化并注入设计师艺术感（Material 3 / Arco 启发）。
+完成编辑级杂志风格重构：首页采用衬线大标题、首字下沉引言、衬线数据统计与勃艮第红点睛；变更记录移入顶部菜单栏通知铃铛（计数徽章 + 最近三条预览），点击「查看全部」进入完整时间线对话框。
 
 ## 已完成
 
-### 设计系统 v3（本轮）
+### 编辑级杂志重构（本轮）
 
-- **变更记录重构为「顶部公告条 + 时间线对话框」**：页面顶部一条精致的横向公告（图标 + 最新摘要 + 总数 + 双区块胶囊切换 + 「查看全部」按钮），不占用主界面；点击后弹出全屏时间线对话框，内嵌完整时间线（功能更新 / 系统说明双区块切换）。
-- **CSS 从 4700 行碎片化恢复品重写为 1733 行结构化设计系统**：单一 token 源（`:root` 默认 + `body[data-theme]` 覆盖）、7 大章节（令牌 → 基础 → 布局 → 组件 → 区块 → 主题 → 响应式）、无重复选择器、媒体查询统一收尾。
-- **圆角艺术化**：五主题各自鲜明的圆角性格（Atelier 24px / Command 12px / Atlas 32px / Blueprint 10px / Spectrum 28px 大圆角），胶囊切换器（999px）、圆角按钮（100px）、柔和分层阴影（shadow-1/2/3 三级）、毛玻璃顶栏、渐变公告条。
-- **公告条交互**：显示最新一条更新摘要 + 总数；「查看全部」与侧栏「变更记录」入口均打开对话框；对话框支持 Esc/点击遮罩关闭、双区块键盘 Tab 导航。
-- **修复移动端对话框**：`dialog:modal` UA 样式（`max-width: calc(100% - 38px)`）覆盖问题，通过 `dialog.timeline-dialog:modal { max-width: none }` 修复，390px 下对话框全宽无圆角。
-- 修复暗色主题（Spectrum/Command）对话框、卡片、时间线节点的完整换肤。
+- **首页 Hero 升级为编辑级杂志头版**：64px 衬线大标题（Georgia/Noto Serif SC/Songti SC）、首字下沉引言（58px 衬线大字）、右侧竖排衬线数据统计（学习笔记/GitHub 项目/变更记录）。
+- **变更记录移入顶部菜单栏通知**：铃铛图标 + 计数徽章（15 条），点击展开通知面板——显示最新摘要、最近三条预览、双区块切换（功能更新/系统说明）、「查看全部」按钮；面板支持外部点击与 Esc 关闭。
+- **Atelier 升级为编辑部暖白纸感配色**：米白 `#f6f4ef` 背景、墨黑 `#1f1d1a` 文字、勃艮第红 `#b3203e` 点睛（按钮/徽章/时间线节点/标题强调）。
+- **五套主题排版性格化**：Atelier/Atlas/Blueprint/Spectrum 用衬线标题，Command 保留等宽终端风；通知面板与时间线对话框全主题适配。
+- **修复通知面板默认展开问题**：`.notification-menu:not([open]) > .notification-panel { display: none }` 显式隐藏（UA details 行为不可靠）。
+- **修复移动端对话框**：`dialog:modal` UA max-width 覆盖，390px 下全宽无圆角。
+
+### 设计系统 v3（此前）
+
+- 变更记录改为「顶部公告条 + 时间线对话框」形态（已被本轮通知中心取代）。
+- CSS 结构化重写：单一 token 源、7 章节、无重复选择器。
+- 五主题圆角性格（24/12/32/10/28px）+ 三级柔和阴影 + 胶囊元素。
 
 ### 此前已完成（v2 基线）
 
-- 恢复并强化设计系统：Apple/Kimi 式克制设计（毛玻璃顶栏、无阴影卡片、大字号层次）。
-- 新增变更记录时间线样式：节点微光、卡片悬浮、入场错位动画，全部 CSS 变量驱动。
-- 新增 GitHub 索引采集字段：license、languages、createdAt、sizeKb、watchers、openIssues、openPullRequests、recentReleaseAt、disabled；summary 聚合。
+- GitHub 索引采集字段增强（license、languages、createdAt 等）。
 - Actions 工作流校验并发布 `data/changelog.json`。
 
 ## 关键决策
 
-- **「更新说明放最顶上但不占主界面」**：公告条只占一条横带高度，完整时间线收进对话框——主界面聚焦内容，变更记录随时可查。
-- **第一性原理重写 CSS 而非修补**：旧版结构有两个根本缺陷——`:root` 与 `body[data-theme]` 双 token 体系分裂、同一组件样式散落多处。v3 统一为单一 token 源 + 7 章节顺序。
-- **圆角是主题性格的一部分**：五套主题的圆角半径作为 token 独立定义，而非全局统一，保证每套主题的辨识度。
-- 保持零构建 HTML/CSS/JavaScript 与 GitHub Pages 工作流。
-- 全部测试契约（19 项单测 + 浏览器烟测选择器）在新结构下保留。
+- **「通知更新放顶部菜单栏」**：铃铛 + 徽章是行业标准通知模式，比页面内公告条更符合直觉；面板提供预览，对话框承载完整时间线。
+- **编辑级杂志风格**：衬线标题 + 首字下沉 + 暖白纸感是中文杂志的经典气质，与"学习笔记"主题的情感（静谧求知、编辑级精致）一致；勃艮第红作为唯一点睛色。
+- **排版性格化**：衬线标题仅用于编辑气质主题（Atelier/Atlas/Blueprint/Spectrum），Command 保留等宽终端风。
+- 保持零构建与全部测试契约。
 
 ## 核心文件
 
-- `index.html`：公告条（changelog-banner）+ 时间线对话框（timeline-dialog）+ 侧栏入口按钮。
-- `styles.css`：设计系统 v3（1733 行，7 章节结构化）。
-- `app.js`：`openTimelineDialog`、公告条摘要渲染、双组 Tab 键盘导航、对话框开合事件。
-- `data/changelog.json`：变更记录数据（14 条：9 功能更新 + 5 系统说明）。
-- `tests/test_frontend_contract.py`：19 项测试覆盖 changelog 与新索引字段。
+- `index.html`：顶部菜单栏通知（notification-menu）+ 编辑级 Hero（hero-stats）+ 时间线对话框。
+- `styles.css`：设计系统 v3 + 编辑级排版（衬线/首字下沉/暖白纸感）+ 通知面板。
+- `app.js`：通知菜单开合（外部点击/Esc）、徽章计数、最近三条预览、Hero 统计渲染。
+- `data/changelog.json`：变更记录（16 条：11 功能更新 + 5 系统说明）。
+- `tests/test_frontend_contract.py`：19 项测试全部通过。
 
 ## 验证
 
-- `node --check app.js`、`knowledge-map.js`、`project-map.js`：均通过。
-- `python -m unittest discover -s tests -p "test_*.py"`：19 项全部通过。
-- 浏览器烟测（Edge Chromium 无头，1440px + 390px）：全部通过。
-- 五主题布局验证（桌面 1440 + 移动 390）：无溢出、公告条位于标题之后、对话框开关正常、双区块切换 9+5=14 条、暗色主题换肤正常。
-- 截图存于 `D:\Temp\v3-*.png`（atelier-top / atelier-projects / atelier-dialog / spectrum-top / mobile-390 / mobile-dialog）。
+- `node --check` 三个 JS 文件：通过。
+- `python -m unittest`：19 项全部通过。
+- 浏览器烟测（Edge 无头）：全部通过。
+- 五主题桌面（1440px）+ 移动端（390px）：无溢出、通知面板默认收起、徽章计数正确、衬线/等宽性格正确、首字下沉 58px、对话框开关正常。
+- 截图存于 `D:\Temp\v4-*.png` / `v5-atelier-hero.png`。
 
 ## 已知边界与下一步
 
-- 示例笔记 URL 仍指向 GitHub Pages 根地址，需替换为正式文章地址后做线上链接健康检查。
-- Spectrum 主题玻璃拟态在低端 GPU 上可能降低帧率；`prefers-reduced-motion` 可自动关闭入场动画。
-- 变更记录的 `commit` 字段为手动维护，需在每次提交前确认是否同步到 changelog。
-- 后续可考虑：公告条加入「最近更新」横向滚动条（如只显示近 3 条）或在页面底部追加完整 changelog 锚点。
+- 示例笔记 URL 仍指向 GitHub Pages 根地址，需替换后做线上链接健康检查。
+- Spectrum 玻璃拟态在低端 GPU 上可能降帧率；`prefers-reduced-motion` 自动关闭入场动画。
+- 变更记录的 `commit` 字段为手动维护，需在每次提交前确认同步。
+- 后续可考虑：通知面板「标记已读」、Hero 加入编辑级装饰线（pull quote 样式）、项目卡片 Bento 网格变体。
+

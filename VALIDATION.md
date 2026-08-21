@@ -18,24 +18,30 @@
 - 1440 × 1100 桌面：数据渲染、任务优先首页层级、MIT 页脚、README 导览、GitHub 优先排序、项目介绍、桌面目录折叠、GitHub 项目概览、维护焦点、范围筛选、外观设置、二级分类、全文搜索、需处理筛选、主题持久化、视图切换、本地草稿、详情对话框。
 - 390 × 844 移动端：页面级横向溢出为 0，抽屉导航打开/关闭正常，主内容不超出可视宽度。
 
-## 变更记录专项验证（v3 公告条 + 对话框）
+## 变更记录专项验证（编辑级通知中心）
 
-- 公告条位于页面标题之下、GitHub 项目区之前，仅占一条横带高度，不占主界面；显示最新一条摘要与总数（14 条）。
-- 点击「查看全部」打开时间线对话框：功能更新 9 条；切换到系统说明显示 5 条；对话框内键盘 `ArrowRight` 可在两个 Tab 间切换。
-- 侧栏「变更记录」入口同样打开对话框；Esc 键、关闭按钮、点击遮罩均可关闭。
-- 移动端 390px：对话框全宽（`max-width: none` 修复 UA `dialog:modal` 限制）、无横向溢出。
-- 五套主题对话框与公告条全部正常换肤（Spectrum/Command 暗色、Atlas/Blueprint 浅色）。
+- 顶部菜单栏通知铃铛：徽章计数 15（与 changelog.json 记录数一致）；默认收起；点击展开面板。
+- 通知面板：显示最新摘要（设计系统 v3）、最近三条预览、双区块切换（功能更新 11 条 / 系统说明 5 条）。
+- 面板底部「查看全部」打开完整时间线对话框；面板自动关闭；Esc/外部点击可关闭面板。
+- 侧栏「变更记录」入口同样打开对话框。
+- 移动端 390px：通知面板宽度 `calc(100vw - 32px)`，无横向溢出；对话框全宽（`max-width: none` 修复 UA `dialog:modal` 限制）。
+
+## 编辑级排版验证
+
+- Atelier：米白纸感背景 `#f6f4ef`、墨黑 `#1f1d1a`、勃艮第红 `#b3203e` 点睛（按钮/徽章/时间线节点/标题强调）。
+- 首页 Hero：64px 衬线大标题（Georgia/Noto Serif SC）、58px 衬线首字下沉、右侧竖排衬线数据统计。
+- 五主题排版性格：Atelier/Atlas/Blueprint/Spectrum 衬线标题，Command 等宽终端风。
 
 ## 五套主题布局验证
 
-- Atelier、Spectrum、Command、Atlas、Blueprint 五套主题在 1440px 下均无页面级横向溢出，公告条位于标题之后、时间线节点、卡片与顶部导航正常渲染。
+- Atelier、Spectrum、Command、Atlas、Blueprint 五套主题在 1440px 下均无页面级横向溢出，通知面板默认收起、时间线节点、卡片与顶部导航正常渲染。
 - 各主题圆角性格：Atelier 24px / Command 12px / Atlas 32px / Blueprint 10px / Spectrum 28px。
 - Spectrum 深空主题：背景为深空渐变（#0c1020），紫/青/粉光晕正常显示，玻璃拟态卡片正常。
 
 ## 视觉检查
 
-- v3 截图保存于本机 `D:\Temp\v3-*.png`（atelier-top / atelier-projects / atelier-dialog / spectrum-top / mobile-390 / mobile-dialog，属于验证证据，不部署到生产站点）。
-- 设计方向：Material 3 / Arco 圆角艺术化启发 + 五主题 token 性格化，配色与排版为本项目独立实现。
+- v4/v5 截图保存于本机 `D:\Temp\v4-*.png` / `v5-atelier-hero.png`（属于验证证据，不部署到生产站点）。
+- 设计方向：编辑级杂志排版（衬线标题 + 首字下沉 + 暖白纸感）+ 五主题 token 性格化，配色与排版为本项目独立实现。
 
 ## 未验证边界
 
