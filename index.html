@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="用于管理 GitHub Pages 学习笔记网页的静态知识目录。">
+  <meta name="description" content="墨卷 · 学习笔记管理台：GitHub 公开项目追溯、本地学习笔记目录与变更记录时间线。">
+  <meta name="theme-color" content="#070a0f">
   <title>墨卷 · 学习笔记管理台</title>
-  <link rel="icon" href="data:,">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0f'/%3E%3Cpath d='M8 22V10h3.2l4.6 7.4V10H19v12h-3.2l-4.6-7.4V22z' fill='%2318d8f5'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body data-theme="atelier">
@@ -62,6 +63,7 @@
           <button class="smart-nav-item" type="button" data-smart-view="attention"><span class="smart-icon" aria-hidden="true">!</span><span>需要处理</span><b id="navAttention">0</b></button>
           <button class="smart-nav-item" type="button" data-smart-view="draft"><span class="smart-icon" aria-hidden="true">○</span><span>本地草稿</span><b id="navDraft">0</b></button>
           <a class="smart-nav-item smart-nav-link" href="#projectHeading"><span class="smart-icon" aria-hidden="true">⌘</span><span>GitHub 项目</span><b id="navProjects">0</b></a>
+          <a class="smart-nav-item smart-nav-link" href="#changelogHeading"><span class="smart-icon" aria-hidden="true">◈</span><span>变更记录</span><b id="navChangelog">0</b></a>
         </nav>
 
         <nav class="side-section" aria-labelledby="categoryHeading">
@@ -103,6 +105,27 @@
         </div>
         <div class="heading-actions">
           <a class="button button-primary" href="#projectHeading">查看 GitHub 项目 <span aria-hidden="true">↘</span></a>
+        </div>
+      </section>
+
+      <!-- 变更记录：时间线展示（功能更新 + 系统说明 双区块） -->
+      <section class="changelog-section" aria-labelledby="changelogHeading">
+        <div class="changelog-head">
+          <div>
+            <span class="eyebrow">CHANGELOG / 变更记录</span>
+            <h2 id="changelogHeading">更新与说明</h2>
+            <p>以时间线回溯每一次功能更新，并沉淀数据口径、隐私边界与维护方式等系统说明。</p>
+          </div>
+          <div class="changelog-switch" role="tablist" aria-label="切换变更记录区块">
+            <button class="changelog-tab is-active" type="button" role="tab" aria-selected="true" data-changelog-section="features" id="changelogTabFeatures">功能更新</button>
+            <button class="changelog-tab" type="button" role="tab" aria-selected="false" tabindex="-1" data-changelog-section="system" id="changelogTabSystem">系统说明</button>
+          </div>
+        </div>
+        <p class="changelog-status" id="changelogStatus" role="status" aria-live="polite">正在读取变更记录…</p>
+        <ol class="timeline" id="timeline" aria-live="polite"></ol>
+        <div class="timeline-empty" id="timelineEmpty" hidden>
+          <strong>当前区块暂无记录</strong>
+          <span>可切换「功能更新」与「系统说明」查看全部条目。</span>
         </div>
       </section>
 
@@ -231,7 +254,7 @@
         <div class="readme-strip-footer">
           <span>公开 Pages</span><a href="https://freecodecampxyg.github.io/starline-learning-view/" target="_blank" rel="noopener noreferrer">freecodecampxyg.github.io/starline-learning-view/ ↗</a>
           <span>源码与 Actions</span><a href="https://github.com/FreeCodeCampXYG/starline-learning-view/actions" target="_blank" rel="noopener noreferrer">GitHub Actions ↗</a>
-          <span>公开数据</span><a href="data/notes.json" target="_blank" rel="noopener noreferrer">笔记 JSON ↗</a><a href="data/github-projects.json" target="_blank" rel="noopener noreferrer">项目索引 JSON ↗</a>
+          <span>公开数据</span><a href="data/notes.json" target="_blank" rel="noopener noreferrer">笔记 JSON ↗</a><a href="data/github-projects.json" target="_blank" rel="noopener noreferrer">项目索引 JSON ↗</a><a href="data/changelog.json" target="_blank" rel="noopener noreferrer">变更记录 JSON ↗</a>
           <span class="readme-strip-note">私有仓库不会进入公开索引；浏览器不会保存 GitHub Token。</span>
         </div>
       </section>
@@ -355,7 +378,7 @@
       <button class="theme-option" type="button" data-theme-value="command" aria-pressed="false"><span class="theme-swatch swatch-command" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Command</strong><small>深色 · 高密度</small></span></button>
       <button class="theme-option" type="button" data-theme-value="atlas" aria-pressed="false"><span class="theme-swatch swatch-atlas" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Atlas</strong><small>柔和 · 知识地图</small></span></button>
       <button class="theme-option" type="button" data-theme-value="blueprint" aria-pressed="false"><span class="theme-swatch swatch-blueprint" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Blueprint</strong><small>理性 · 工程蓝图</small></span></button>
-      <button class="theme-option" type="button" data-theme-value="spectrum" aria-pressed="false"><span class="theme-swatch swatch-spectrum" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Spectrum</strong><small>现代 · 产品工作台</small></span></button>
+      <button class="theme-option" type="button" data-theme-value="spectrum" aria-pressed="false"><span class="theme-swatch swatch-spectrum" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>Spectrum</strong><small>深空能量场 · 玻璃拟态</small></span></button>
     </div>
   </dialog>
 

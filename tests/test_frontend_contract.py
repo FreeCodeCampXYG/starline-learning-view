@@ -193,6 +193,54 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("项目索引是辅助数据，失败时不阻断核心笔记目录", script)
         self.assertLess(script.index('fetch("data/notes.json"'), script.index('fetch("data/github-projects.json"'))
 
+    def test_changelog_is_present_and_valid(self) -> None:
+        """变更记录 JSON 和页面契约应完整。"""
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        script = (ROOT / "app.js").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        changelog = json.loads((ROOT / "data" / "changelog.json").read_text(encoding="utf-8"))
+
+        # HTML 包含时间线区块
+        self.assertIn('id="changelogHeading"', html)
+        self.assertIn('id="changelogStatus"', html)
+        self.assertIn('id="changelogTabFeatures"', html)
+        self.assertIn('id="changelogTabSystem"', html)
+        self.assertIn('id="timeline"', html)
+        self.assertIn('id="timelineEmpty"', html)
+        # 脚本包含 changelog 渲染函数
+        self.assertIn("function renderChangelog()", script)
+        self.assertIn("function validateChangelogPayload", script)
+        self.assertIn("function renderTimelineItem", script)
+        self.assertIn("function activateChangelogSection", script)
+        # 工作流包含 changelog
+        self.assertIn("changelog.json", workflow)
+        # 数据完整性
+        self.assertIn("schemaVersion", changelog)
+        self.assertGreaterEqual(len(changelog["sections"]), 2)
+        self.assertGreaterEqual(len(changelog["entries"]), 10)
+        section_ids = {section["id"] for section in changelog["sections"]}
+        for entry in changelog["entries"]:
+            self.assertIn(entry["section"], section_ids)
+            self.assertIn("id", entry)
+            self.assertIn("date", entry)
+            self.assertIn("title", entry)
+            self.assertIn("summary", entry)
+
+    def test_index_contains_new_fields(self) -> None:
+        """新索引应包含 license、languages、openIssues 等字段。"""
+        payload = json.loads((ROOT / "data" / "github-projects.json").read_text(encoding="utf-8"))
+        self.assertIn("languages", payload["summary"])
+        self.assertIn("licenses", payload["summary"])
+        for project in payload["projects"]:
+            self.assertIn("license", project)
+            self.assertIn("languages", project)
+            self.assertIn("openIssues", project)
+            self.assertIn("createdAt", project)
+            self.assertIn("sizeKb", project)
+            self.assertIn("watchers", project)
+            self.assertIn("recentReleaseAt", project)
+            self.assertIn("disabled", project)
+
 
 if __name__ == "__main__":
     unittest.main()

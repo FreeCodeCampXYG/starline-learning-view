@@ -10,6 +10,8 @@ GitHub Actions 会读取 `FreeCodeCampXYG` 的公开仓库并生成 `data/github
 
 首页顺序遵循“先追溯、后学习”：`GitHub 公开项目` 位于本地笔记之前，源码、Pages 和 README 从项目卡片直接打开；下面的 `本地内容` 只展示 `data/notes.json` 与浏览器本地草稿。桌面端目录可以收起以获得全宽项目视图，窄屏端使用带遮罩的抽屉导航，关闭后不会改变当前筛选状态。
 
+首页顶部新增 `变更记录` 时间线：以时间线方式回溯每一次功能更新，并在 `系统说明` 区块沉淀数据口径、隐私边界与部署方式等维护约定。数据维护在 `data/changelog.json`，页面按日期倒序渲染并支持双区块切换。
+
 自建项目区默认会展示当前管理台的详细介绍和 README 阅读路径。项目卡片继续保留 GitHub 原始简介作为事实来源，并提供 `README`、`源码` 与 `打开网站` 入口；可维护的补充介绍保存在 `data/project-guides.json`，不会写入 Token 或私有仓库信息。
 
 ## 首页快速导览
@@ -53,9 +55,19 @@ python -m http.server 8000
 - Command：开发者控制台，深色、高密度、状态优先。
 - Atlas：柔和知识地图，圆润色带与分类方向感。
 - Blueprint：工程蓝图，网格、线框与版本维护感。
-- Spectrum：现代产品台，渐变氛围与管理效率平衡。
+- Spectrum：深空能量场，玻璃拟态、青色-紫-金光晕与轨道旋转光效。
 
 五套主题共享同一套 HTML、数据和 JavaScript，只通过 CSS tokens 切换，后续功能只需维护一次。主题入口位于“外观”设置，不占用业务首页。
+
+## 变更记录时间线
+
+首页 `变更记录` 区块以时间线方式展示项目演进，数据来自 `data/changelog.json`：
+
+- `sections`：两个固定区块——`features`（功能更新）与 `system`（系统说明），各自带标签与一句话说明。
+- `entries`：每条记录包含 `id`、`date`（YYYY-MM-DD）、`section`、`title`、`summary`、可选 `tags` 与 `commit`。
+- 页面按日期倒序渲染，时间线节点、入场动画与标签随五套主题自动换肤；`commit` 字段可对应 Git 提交短哈希。
+
+维护方式：新增功能或达成重要系统约定后，在 `data/changelog.json` 的 `entries` 头部插入一条记录即可；日期请使用当天日期，`section` 必须是已声明的区块 id。
 
 ## 数据维护
 
@@ -81,6 +93,8 @@ python -m http.server 8000
 - 不应公开展示的旧项目通过仓库 Actions 变量 `HIDDEN_GITHUB_REPOSITORIES` 排除；支持逗号、分号或换行分隔，隐藏名单不会写入 Pages 数据文件。
 - “本人提交”按 GitHub 账号身份匹配每个公开仓库默认分支统计，不包含其他分支、未推送提交或使用未绑定邮箱的历史。
 - 索引同时保存近 30 天匹配提交数和最近匹配提交时间；页面显示数据新鲜度，超过正常刷新周期会提示检查 Actions。
+- 索引 1.1.0 起为每个仓库补充：`license`（许可证名称与 SPDX）、`languages`、`createdAt`（创建时间）、`sizeKb`、`watchers`、`openIssues`、`openPullRequests`、`recentReleaseAt`（自建项目最近 Release 时间）与 `disabled`；汇总层新增 `languages`、`licenses`、`stars`、`forks`、`watchers`、`openIssues`、`openPullRequests` 聚合，便于页面与项目关系图展示更完整的公开画像。
+- 最近 Release 只对自建项目读取，避免为 Fork / Star 仓库产生额外请求。
 
 本地刷新命令：
 
@@ -88,7 +102,7 @@ python -m http.server 8000
 python scripts\sync_github_projects.py --owner FreeCodeCampXYG --output data\github-projects.json
 ```
 
-必需字段：`id`、`title`、`summary`、`url`、`categoryPath`、`tags`、`status`、`linkStatus`、`updatedAt`。
+必需字段（notes.json）：`id`、`title`、`summary`、`url`、`categoryPath`、`tags`、`status`、`linkStatus`、`updatedAt`。
 
 状态枚举：
 

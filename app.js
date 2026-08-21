@@ -42,6 +42,8 @@ const state = {
   starredProjects: [],
   projectGuides: {},
   relations: [],
+  changelog: null,
+  changelogSection: "features",
   projectFilter: "owned",
   query: "",
   category: "all",
@@ -110,6 +112,14 @@ async function initialize() {
         if (Array.isArray(relationPayload.relations)) state.relations = structuredCloneSafe(relationPayload.relations);
       }
     } catch { /* 关系数据是辅助层，失败时继续提供列表与卡片视图。 */ }
+    try {
+      const changelogResponse = await fetch("data/changelog.json", { cache: "no-store" });
+      if (changelogResponse.ok) {
+        const changelogPayload = await changelogResponse.json();
+        const changelogErrors = validateChangelogPayload(changelogPayload);
+        if (!changelogErrors.length) state.changelog = structuredCloneSafe(changelogPayload);
+      }
+    } catch { /* 变更记录是辅助数据，失败时显示空状态提示。 */ }
     renderAll();
   } catch (error) {
     renderLoadError(error);
@@ -143,7 +153,9 @@ function cacheDom() {
     "knowledgeMapPause", "knowledgeMapReset", "knowledgeMapGraph", "knowledgeMapViewport",
     "knowledgeMapEdges", "knowledgeMapEdgeLabels", "knowledgeMapNodes", "knowledgeMapEmpty",
     "knowledgeMapSummary", "knowledgeMapStatus", "knowledgeMapDetail", "knowledgeMapVisibleCount",
-    "knowledgeMapNodeList"
+    "knowledgeMapNodeList",
+    "changelogHeading", "changelogStatus", "changelogTabFeatures", "changelogTabSystem",
+    "timeline", "timelineEmpty", "navChangelog"
   ].forEach((id) => { dom[id] = document.getElementById(id); });
 }
 
@@ -261,6 +273,24 @@ function bindEvents() {
     });
   });
 
+  document.querySelectorAll("[data-changelog-section]").forEach((button) => {
+    button.addEventListener("click", () => activateChangelogSection(button.dataset.changelogSection));
+  });
+  dom.changelogTabFeatures.addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const tabs = [dom.changelogTabFeatures, dom.changelogTabSystem];
+    const currentIndex = tabs.indexOf(document.activeElement);
+    if (currentIndex < 0) return;
+    event.preventDefault();
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    activateChangelogSection(tabs[nextIndex].dataset.changelogSection);
+    tabs[nextIndex].focus();
+  });
+
   dom.appearanceButton.addEventListener("click", () => dom.appearanceDialog.showModal());
   dom.appearanceSidebarButton.addEventListener("click", () => {
     closeSidebar();
@@ -356,6 +386,7 @@ function renderAll() {
   renderTagCloud();
   renderLibrary();
   renderProjects();
+  renderChangelog();
   renderDataMode();
 }
 
@@ -651,10 +682,10 @@ function projectDescription(project, starred = false) {
 function renderStats() {
   const primaryCategories = new Set(state.notes.map((note) => note.categoryPath[0]));
   const attentionCount = state.notes.filter((note) => note.status === "draft" || note.linkStatus !== "healthy").length;
-  animateNumber(dom.statTotal, state.notes.length);
-  animateNumber(dom.statPublished, state.notes.filter((note) => note.status === "published").length);
-  animateNumber(dom.statUnchecked, attentionCount);
-  animateNumber(dom.statCategories, primaryCategories.size);
+  dom.statTotal.textContent = String(state.notes.length);
+  dom.statPublished.textContent = String(state.notes.filter((note) => note.status === "published").length);
+  dom.statUnchecked.textContent = String(attentionCount);
+  dom.statCategories.textContent = String(primaryCategories.size);
   dom.navTotal.textContent = String(state.notes.length);
   dom.navFeatured.textContent = String(state.notes.filter((note) => note.featured).length);
   dom.navAttention.textContent = String(attentionCount);
@@ -792,6 +823,66 @@ function renderFilterSummary() {
 function renderDataMode() {
   dom.dataModeText.textContent = state.localMode ? "本地草稿目录" : "仓库目录";
   dom.resetDraftButton.hidden = !state.localMode;
+}
+
+function activateChangelogSection(section) {
+  if (!["features", "system"].includes(section)) return;
+  state.changelogSection = section;
+  document.querySelectorAll("[data-changelog-section]").forEach((button) => {
+    const active = button.dataset.changelogSection === section;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+  renderChangelog();
+}
+
+function renderChangelog() {
+  const payload = state.changelog;
+  const section = state.changelogSection;
+  dom.navChangelog.textContent = payload ? String(payload.entries.length) : "—";
+  document.querySelectorAll("[data-changelog-section]").forEach((button) => {
+    const active = button.dataset.changelogSection === section;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+
+  if (!payload) {
+    dom.changelogStatus.textContent = "变更记录暂未载入；可稍后刷新重试。";
+    dom.timeline.replaceChildren();
+    dom.timelineEmpty.hidden = false;
+    return;
+  }
+
+  const sectionMeta = (payload.sections || []).find((item) => item.id === section);
+  const entries = (payload.entries || [])
+    .filter((entry) => entry.section === section)
+    .sort((a, b) => compareDateDesc(a.date, b.date));
+  dom.changelogStatus.textContent = sectionMeta
+    ? `${sectionMeta.label} · ${entries.length} 条 · ${sectionMeta.description}`
+    : `${entries.length} 条记录`;
+  dom.timelineEmpty.hidden = entries.length > 0;
+  dom.timeline.innerHTML = entries.map((entry, index) => renderTimelineItem(entry, index)).join("");
+}
+
+function renderTimelineItem(entry, index) {
+  const commitBadge = entry.commit && entry.commit !== "本轮提交"
+    ? `<code class="timeline-commit" title="对应 Git 提交">${escapeHtml(entry.commit)}</code>`
+    : (entry.commit ? `<code class="timeline-commit is-current" title="本轮提交">${escapeHtml(entry.commit)}</code>` : "");
+  const tags = (entry.tags || []).map((tag) => `<span class="timeline-tag">${escapeHtml(tag)}</span>`).join("");
+  return `<li class="timeline-item" style="--timeline-index:${index}">
+    <div class="timeline-rail" aria-hidden="true"><span class="timeline-dot"></span></div>
+    <div class="timeline-card">
+      <div class="timeline-meta">
+        <time datetime="${escapeAttr(entry.date)}">${escapeHtml(formatDate(entry.date))}</time>
+        ${commitBadge}
+      </div>
+      <h3>${escapeHtml(entry.title)}</h3>
+      <p>${escapeHtml(entry.summary)}</p>
+      ${tags ? `<div class="timeline-tags">${tags}</div>` : ""}
+    </div>
+  </li>`;
 }
 
 function renderLoadError(error) {
@@ -1044,6 +1135,28 @@ function buildCategoryTree(notes) {
   }));
 }
 
+function validateChangelogPayload(payload) {
+  if (!payload || typeof payload !== "object" || !Array.isArray(payload.entries)) return ["变更记录必须包含 entries 数组"];
+  const errors = [];
+  const sectionIds = new Set((payload.sections || []).map((item) => item.id));
+  const ids = new Set();
+  payload.entries.forEach((entry, index) => {
+    const prefix = `entries[${index}]`;
+    if (!entry || typeof entry !== "object") {
+      errors.push(`${prefix} 必须是对象`);
+      return;
+    }
+    ["id", "date", "section", "title", "summary"].forEach((key) => {
+      if (!(key in entry)) errors.push(`${prefix} 缺少 ${key}`);
+    });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date || "")) errors.push(`${prefix}.date 无效`);
+    if (!sectionIds.has(entry.section)) errors.push(`${prefix}.section 无效`);
+    if (ids.has(entry.id)) errors.push(`${prefix}.id 重复`);
+    ids.add(entry.id);
+  });
+  return errors;
+}
+
 function validatePayload(payload) {
   const errors = [];
   if (!payload || typeof payload !== "object" || !Array.isArray(payload.notes)) return ["根对象必须包含 notes 数组"];
@@ -1248,10 +1361,6 @@ function showToast(message) {
   dom.toast.classList.add("is-visible");
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => dom.toast.classList.remove("is-visible"), 3200);
-}
-
-function animateNumber(element, target) {
-  element.textContent = String(target);
 }
 
 function formatDate(value) {

@@ -199,6 +199,21 @@ def fallback_description(repository: dict[str, Any]) -> str:
     return f"{language or '公开'}项目，详细功能说明可在源码仓库中继续补充。"
 
 
+def normalize_license(repository: dict[str, Any]) -> dict[str, str] | None:
+    """提取仓库许可证名称与 SPDX 标识；无许可证返回 None。"""
+    license_info = repository.get("license")
+    if not isinstance(license_info, dict):
+        return None
+    name = str(license_info.get("name") or "").strip()
+    spdx = str(license_info.get("spdx_id") or "").strip()
+    if not name and not spdx:
+        return None
+    return {
+        "name": name,
+        "spdxId": spdx if spdx and spdx != "NOASSERTION" else (name or ""),
+    }
+
+
 def normalize_repository(
     repository: dict[str, Any],
     owner: str,
@@ -207,31 +222,46 @@ def normalize_repository(
     recent_commit_count: int | None = None,
     last_matched_commit_at: str | None = None,
     upstream: dict[str, str] | None = None,
+    recent_release_at: str | None = None,
+    open_issues: int | None = None,
+    open_pull_requests: int | None = None,
+    watchers: int | None = None,
 ) -> dict[str, Any]:
     """裁剪 GitHub 响应，只保留公开网页所需且稳定的字段。"""
     name = str(repository.get("name") or "").strip()
     has_pages = bool(repository.get("has_pages"))
     topics = repository.get("topics") if isinstance(repository.get("topics"), list) else []
+    description_raw = str(repository.get("description") or "").strip()
+    language = str(repository.get("language") or "").strip() or None
     return {
         "id": int(repository.get("id") or 0),
         "name": name,
         "fullName": str(repository.get("full_name") or f"{owner}/{name}"),
-        "description": str(repository.get("description") or "").strip() or fallback_description(repository),
-        "descriptionSource": "github" if str(repository.get("description") or "").strip() else "generated-fallback",
+        "description": description_raw or fallback_description(repository),
+        "descriptionSource": "github" if description_raw else "generated-fallback",
         "repoUrl": str(repository.get("html_url") or f"https://github.com/{owner}/{name}"),
         "pagesUrl": derived_pages_url(owner, name) if has_pages else None,
         "hasPages": has_pages,
         "homepage": str(repository.get("homepage") or "").strip() or None,
-        "language": str(repository.get("language") or "").strip() or None,
+        "language": language,
+        "languages": [language] if language else [],
         "topics": [str(topic) for topic in topics if str(topic).strip()][:12],
+        "license": normalize_license(repository),
         "fork": bool(repository.get("fork")),
         "archived": bool(repository.get("archived")),
+        "disabled": bool(repository.get("disabled")),
         "stars": int(repository.get("stargazers_count") or 0),
         "forks": int(repository.get("forks_count") or 0),
+        "watchers": watchers if isinstance(watchers, int) else int(repository.get("subscribers_count") or 0),
+        "openIssues": open_issues if isinstance(open_issues, int) else int(repository.get("open_issues_count") or 0),
+        "openPullRequests": open_pull_requests if isinstance(open_pull_requests, int) else 0,
         "defaultBranch": str(repository.get("default_branch") or "main"),
+        "sizeKb": int(repository.get("size") or 0),
+        "createdAt": str(repository.get("created_at") or ""),
         "commitCount": commit_count,
         "recentCommitCount": recent_commit_count,
         "lastMatchedCommitAt": last_matched_commit_at,
+        "recentReleaseAt": recent_release_at,
         "commitScope": "GitHub 账号身份匹配的默认分支提交",
         "upstream": upstream,
         "updatedAt": str(repository.get("updated_at") or ""),
@@ -252,6 +282,7 @@ def normalize_starred(repository: dict[str, Any]) -> dict[str, Any]:
         "homepage": str(repository.get("homepage") or "").strip() or None,
         "language": str(repository.get("language") or "").strip() or None,
         "topics": [str(topic) for topic in topics if str(topic).strip()][:12],
+        "license": normalize_license(repository),
         "stars": int(repository.get("stargazers_count") or 0),
         "forks": int(repository.get("forks_count") or 0),
         "updatedAt": str(repository.get("updated_at") or ""),
@@ -290,8 +321,10 @@ def build_payload(
     known_commit_total = sum(project["commitCount"] for project in projects if isinstance(project["commitCount"], int))
     recent_commit_total = sum(project["recentCommitCount"] for project in projects if isinstance(project["recentCommitCount"], int))
     unknown_commit_repositories = sum(project["commitCount"] is None for project in projects)
+    languages = [language for project in projects if (language := project.get("language"))]
+    licenses = [license_info for project in projects if (license_info := project.get("license"))]
     return {
-        "schemaVersion": "1.0.0",
+        "schemaVersion": "1.1.0",
         "owner": owner,
         "generatedAt": generated_at or dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "source": f"https://api.github.com/users/{owner}/repos",
@@ -305,12 +338,35 @@ def build_payload(
             "matchedDefaultBranchCommits": known_commit_total,
             "recentMatchedDefaultBranchCommits": recent_commit_total,
             "unknownCommitRepositories": unknown_commit_repositories,
+            "stars": sum(project["stars"] for project in projects),
+            "forks": sum(project["forks"] for project in projects),
+            "watchers": sum(project["watchers"] for project in projects),
+            "openIssues": sum(project["openIssues"] for project in projects),
+            "openPullRequests": sum(project["openPullRequests"] for project in projects),
+            "languages": sorted({language for language in languages if language}),
+            "licenses": sorted({license_info["name"] for license_info in licenses if license_info.get("name")}),
             "starred": len(starred),
             "excludedRepositories": excluded_repositories,
         },
         "projects": projects,
         "starred": starred,
     }
+
+
+def recent_release_at(owner: str, repository_name: str, token: str | None = None) -> str | None:
+    """读取仓库最近一次 Release 的发布时间；无 Release 或失败返回 None。"""
+    query = urllib.parse.urlencode({"per_page": 1})
+    url = f"{API_ROOT}/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repository_name)}/releases?{query}"
+    try:
+        payload = github_request(url, token)
+    except RuntimeError:
+        return None
+    if not isinstance(payload, list) or not payload:
+        return None
+    latest = payload[0]
+    if not isinstance(latest, dict):
+        return None
+    return str(latest.get("published_at") or "") or None
 
 
 def parse_args() -> argparse.Namespace:
@@ -349,6 +405,11 @@ def main() -> None:
         str(repository.get("name") or ""): fork_upstream(repository, token)
         for repository in repositories if repository.get("fork")
     }
+    # 只为自建项目读取最近 Release，避免对 Fork / Star 仓库产生额外请求。
+    recent_releases = {
+        str(repository.get("name") or ""): recent_release_at(args.owner, str(repository.get("name") or ""), token)
+        for repository in repositories if not repository.get("fork")
+    }
     starred_repositories, _ = filter_excluded_repositories(
         list_starred_repositories(args.owner, token),
         excluded,
@@ -364,6 +425,10 @@ def main() -> None:
         excluded_repositories=excluded_count,
         activity_window_days=activity_window_days,
     )
+    # 把最近 Release 时间写回项目对象。
+    for project in payload["projects"]:
+        if not project["fork"]:
+            project["recentReleaseAt"] = recent_releases.get(project["name"])
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({

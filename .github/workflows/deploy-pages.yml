@@ -46,6 +46,7 @@ jobs:
           test -f data/github-projects.json
           test -f data/project-guides.json
           test -f data/relations.json
+          test -f data/changelog.json
           node --check app.js
           node --check knowledge-map.js
           node --check project-map.js
@@ -53,6 +54,7 @@ jobs:
           python -m json.tool data/github-projects.json > /dev/null
           python -m json.tool data/project-guides.json > /dev/null
           python -m json.tool data/relations.json > /dev/null
+          python -m json.tool data/changelog.json > /dev/null
           python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Build Pages artifact
@@ -65,6 +67,7 @@ jobs:
           cp data/github-projects.json _site/data/
           cp data/project-guides.json _site/data/
           cp data/relations.json _site/data/
+          cp data/changelog.json _site/data/
           touch _site/.nojekyll
 
       - name: Upload Pages artifact
