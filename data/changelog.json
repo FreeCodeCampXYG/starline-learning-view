@@ -15,6 +15,15 @@
   ],
   "entries": [
     {
+      "id": "changelog-2026-08-17-palette",
+      "date": "2026-08-17",
+      "section": "features",
+      "title": "配色精修：奶油纸感与朱砂点睛",
+      "summary": "根据视觉反馈精修 Atelier 配色：背景升级为更通透的奶油白，强调色由冷调勃艮第红换成暖调朱砂红；主按钮改为墨黑，红色仅保留时间线节点、标题强调与通知徽章等小面积点睛，整体更克制高级。",
+      "tags": ["配色", "编辑排版"],
+      "commit": "本轮提交"
+    },
+    {
       "id": "changelog-2026-08-17-editorial",
       "date": "2026-08-17",
       "section": "features",

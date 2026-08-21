@@ -15,22 +15,22 @@
   color-scheme: light;
 
   /* 色板 */
-  --bg: #f6f4ef;
-  --surface: #faf8f4;
-  --surface-strong: #fdfcfa;
-  --surface-soft: #efebe3;
-  --ink: #1f1d1a;
-  --ink-muted: #6b675f;
-  --ink-faint: #9a948a;
-  --line: rgba(31, 29, 26, .10);
-  --line-strong: rgba(31, 29, 26, .18);
-  --accent: #b3203e;
-  --accent-soft: #f6e3e8;
-  --accent-ink: #8c1930;
+  --bg: #faf7f1;
+  --surface: #fcf9f4;
+  --surface-strong: #fffefb;
+  --surface-soft: #f1ece3;
+  --ink: #201c17;
+  --ink-muted: #6e675c;
+  --ink-faint: #9d958a;
+  --line: rgba(32, 28, 23, .10);
+  --line-strong: rgba(32, 28, 23, .18);
+  --accent: #a62b1f;
+  --accent-soft: #f6e4e0;
+  --accent-ink: #82201a;
   --success: #2a735b;
   --warning: #a15c1d;
   --danger: #b73535;
-  --focus: #b3203e;
+  --focus: #a62b1f;
 
   /* 层次：圆角 + 阴影 */
   --radius-sm: 8px;
@@ -1481,27 +1481,30 @@ dialog::backdrop { background: rgba(0, 0, 0, .3); backdrop-filter: blur(4px); }
    6 · 五套主题（仅覆盖 token）
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* —— Atelier：编辑部暖白纸感 · 杂志克制 —— */
+/* —— Atelier：编辑部奶油纸感 · 朱砂点睛 —— */
 body[data-theme="atelier"] {
-  --bg: #f6f4ef;
-  --surface: #faf8f4;
-  --surface-strong: #fdfcfa;
-  --surface-soft: #efebe3;
-  --ink: #1f1d1a;
-  --ink-muted: #6b675f;
-  --ink-faint: #9a948a;
-  --line: rgba(31, 29, 26, .10);
-  --line-strong: rgba(31, 29, 26, .18);
-  --accent: #b3203e;
-  --accent-soft: #f6e3e8;
-  --accent-ink: #8c1930;
-  --shadow-1: 0 1px 2px rgba(31, 29, 26, .05), 0 4px 14px rgba(31, 29, 26, .05);
-  --shadow-2: 0 2px 6px rgba(31, 29, 26, .06), 0 14px 36px rgba(31, 29, 26, .08);
-  --shadow-3: 0 10px 28px rgba(31, 29, 26, .09), 0 28px 70px rgba(31, 29, 26, .11);
+  --bg: #faf7f1;
+  --surface: #fcf9f4;
+  --surface-strong: #fffefb;
+  --surface-soft: #f1ece3;
+  --ink: #201c17;
+  --ink-muted: #6e675c;
+  --ink-faint: #9d958a;
+  --line: rgba(32, 28, 23, .10);
+  --line-strong: rgba(32, 28, 23, .18);
+  --accent: #a62b1f;
+  --accent-soft: #f6e4e0;
+  --accent-ink: #82201a;
+  --shadow-1: 0 1px 2px rgba(32, 28, 23, .05), 0 4px 14px rgba(32, 28, 23, .05);
+  --shadow-2: 0 2px 6px rgba(32, 28, 23, .06), 0 14px 36px rgba(32, 28, 23, .08);
+  --shadow-3: 0 10px 28px rgba(32, 28, 23, .09), 0 28px 70px rgba(32, 28, 23, .11);
 }
-body[data-theme="atelier"] .brand-mark { background: #1f1d1a; }
+body[data-theme="atelier"] .brand-mark { background: #201c17; }
 body[data-theme="atelier"] .brand-mark span { background: var(--accent); }
 body[data-theme="atelier"] .pulse-dot { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+/* 编辑级：主按钮用墨色，红色只做小面积点睛 */
+body[data-theme="atelier"] .button-primary { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+body[data-theme="atelier"] .button-primary:hover { background: #000000; box-shadow: 0 6px 20px rgba(32, 28, 23, .22), 0 0 0 3px var(--accent-soft); }
 
 /* —— Command：高密度开发者控制台 —— */
 body[data-theme="command"] {
