@@ -15,6 +15,15 @@
   ],
   "entries": [
     {
+      "id": "changelog-2026-08-17-modern-palette",
+      "date": "2026-08-17",
+      "section": "features",
+      "title": "配色焕新：浅色现代科技风与蓝绿橙功能色",
+      "summary": "Atelier 默认主题切换为浅色现代科技风：浅灰蓝白底 + 科技蓝主调，并按功能分配三色——学习笔记用绿、GitHub 项目用蓝、维护变更用橙；主按钮回归蓝色实心，状态标签与统计数字随功能自然着色。",
+      "tags": ["配色", "设计系统"],
+      "commit": "本轮提交"
+    },
+    {
       "id": "changelog-2026-08-17-palette",
       "date": "2026-08-17",
       "section": "features",
