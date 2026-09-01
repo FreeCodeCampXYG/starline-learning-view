@@ -198,6 +198,7 @@ class FrontendContractTests(unittest.TestCase):
         html = (ROOT / "index.html").read_text(encoding="utf-8")
         script = (ROOT / "app.js").read_text(encoding="utf-8")
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        sync_script = (ROOT / "scripts" / "sync_changelog.py").read_text(encoding="utf-8")
         changelog = json.loads((ROOT / "data" / "changelog.json").read_text(encoding="utf-8"))
 
         # HTML 包含时间线区块
@@ -214,6 +215,8 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("function activateChangelogSection", script)
         # 工作流包含 changelog
         self.assertIn("changelog.json", workflow)
+        self.assertIn("sync_changelog.py", workflow)
+        self.assertIn("git log", sync_script)
         # 数据完整性
         self.assertIn("schemaVersion", changelog)
         self.assertGreaterEqual(len(changelog["sections"]), 2)

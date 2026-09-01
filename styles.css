@@ -1578,6 +1578,102 @@ select {
   font-size: 14px;
 }
 
+/* 图谱 SVG 需要显式指定填充与描边；否则浏览器会把形状按默认黑色实心绘制，遮住节点文字。 */
+[data-map-kind="domain"], [data-project-map-kind="account"] { --map-kind-color: var(--accent); }
+[data-map-kind="category"] { --map-kind-color: #8c6fa8; }
+[data-map-kind="note"] { --map-kind-color: #397c96; }
+[data-map-kind="project"], [data-project-map-kind="language"] { --map-kind-color: var(--focus); }
+[data-map-kind="tag"], [data-project-map-kind="upstream"] { --map-kind-color: var(--warning); }
+[data-project-map-kind="repository"] { --map-kind-color: var(--ink); }
+[data-project-map-kind="capability"] { --map-kind-color: var(--success); }
+
+.knowledge-map-stage,
+.project-map-stage {
+  background-color: var(--surface);
+  background-image: radial-gradient(color-mix(in srgb, var(--line-strong) 55%, transparent) .7px, transparent .7px);
+  background-size: 18px 18px;
+  touch-action: none;
+}
+
+#knowledgeMapGraph,
+#projectMapGraph { cursor: grab; user-select: none; }
+#knowledgeMapGraph.panning,
+#knowledgeMapGraph.dragging-node,
+#projectMapGraph.panning,
+#projectMapGraph.dragging-node { cursor: grabbing; }
+
+.knowledge-map-edge,
+.project-map-edge {
+  stroke: color-mix(in srgb, var(--ink-faint) 54%, transparent);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+}
+.knowledge-map-edge.explicit,
+.project-map-edge.explicit {
+  stroke: color-mix(in srgb, var(--accent) 68%, var(--ink-muted));
+  stroke-width: 1.8;
+}
+.knowledge-map-edge.derived,
+.project-map-edge.derived { stroke-dasharray: 2 3; }
+.knowledge-map-edge.search-related,
+.project-map-edge.search-related { stroke: var(--accent-ink); stroke-width: 2.4; }
+.knowledge-map-edge.search-context,
+.project-map-edge.search-context,
+.knowledge-map-node.search-context,
+.project-map-node.search-context { opacity: .2; }
+
+.knowledge-map-node,
+.project-map-node { cursor: pointer; outline: none; }
+.knowledge-map-node-hit-area,
+.project-map-node-hit-area { fill: transparent; pointer-events: all; }
+.knowledge-map-node-shape,
+.project-map-node-shape {
+  fill: color-mix(in srgb, var(--map-kind-color) 15%, var(--surface-strong));
+  stroke: var(--map-kind-color);
+  stroke-width: 1.7;
+  vector-effect: non-scaling-stroke;
+  transition: fill 160ms ease, stroke-width 160ms ease;
+}
+.knowledge-map-node:hover .knowledge-map-node-shape,
+.knowledge-map-node:focus-visible .knowledge-map-node-shape,
+.knowledge-map-node.selected .knowledge-map-node-shape,
+.knowledge-map-node.search-match .knowledge-map-node-shape,
+.project-map-node:hover .project-map-node-shape,
+.project-map-node:focus-visible .project-map-node-shape,
+.project-map-node.selected .project-map-node-shape,
+.project-map-node.search-match .project-map-node-shape {
+  fill: color-mix(in srgb, var(--map-kind-color) 30%, var(--surface-strong));
+  stroke-width: 3;
+}
+.knowledge-map-node.search-match .knowledge-map-node-shape,
+.project-map-node.search-match .project-map-node-shape {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--map-kind-color) 45%, transparent));
+}
+.knowledge-map-node-label,
+.project-map-node-label {
+  fill: var(--ink);
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 650;
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-linejoin: round;
+  stroke-width: 3.5px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.knowledge-map-edge-label {
+  fill: var(--ink-faint);
+  font-family: var(--font-body);
+  font-size: 8px;
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
 /* —— 5.7 对话框 —— */
 dialog {
   padding: 30px;

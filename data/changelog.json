@@ -1,6 +1,7 @@
 {
-  "schemaVersion": "1.0.0",
-  "updatedAt": "2026-08-17",
+  "schemaVersion": "1.1.0",
+  "generatedAt": "2026-09-01T13:38:32Z",
+  "source": "git log",
   "sections": [
     {
       "id": "features",
@@ -15,156 +16,267 @@
   ],
   "entries": [
     {
-      "id": "changelog-2026-08-17-typography",
-      "date": "2026-08-17",
+      "id": "commit-0ddd2de",
+      "date": "2026-09-01",
       "section": "features",
-      "title": "正文排版参数精细化：行距 1.75 + 字距清爽",
-      "summary": "参照公众号排版黄金规范（正文字号 15px、行距 1.75、字距 1px、正文柔和色）校准全站正文排版：卡片摘要、项目描述、轮播卡片、时间线、详情弹层等主要阅读文本统一行距 1.75、增加 0.015em 中文字距；Hero 引言保持 1.9 舒适行高。阅读节奏更稳定，中文更清爽。",
-      "tags": ["排版", "可读性"],
-      "commit": "本轮提交"
+      "title": "完善提交统计与工单监测",
+      "summary": "将提交数改为默认分支总提交，避免作者身份匹配导致新增提交显示为零；Actions 同步开放 Issue 与 Pull Request 条目，项目区新增规范化监测标签和条目清单。",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
+      "commit": "0ddd2de"
     },
     {
-      "id": "changelog-2026-08-17-pages-carousel",
-      "date": "2026-08-17",
+      "id": "commit-f7e1c9a",
+      "date": "2026-09-01",
       "section": "features",
-      "title": "新增首页作品集轮播：已部署站点横向滑屏",
-      "summary": "项目区顶部新增「我的在线作品集」轮播：横向展示所有已部署的 GitHub Pages 站点（滚动吸附 + 左右箭头 + 指示点 + 5 秒自动轮播，悬停暂停），每张卡片含项目名、简介、语言标签与「打开网站」按钮；五套主题各自换肤（Spectrum 深空渐变光晕、Command 终端硬阴影、Blueprint 蓝图偏移投影）。",
-      "tags": ["轮播", "作品集", "GitHub Pages"],
-      "commit": "本轮提交"
+      "title": "补齐项目活动统计与全局搜索",
+      "summary": "让 Actions 定时索引分别采集开放 Issue 与 Pull Request，并将近期提交与推送用于活动轮播排序；前端新增统计展示、跨笔记与项目搜索反馈、清空和 Escape 操作，同时补充契约测试与开发状态记录。",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
+      "commit": "f7e1c9a"
     },
     {
-      "id": "changelog-2026-08-17-link-highlight",
-      "date": "2026-08-17",
+      "id": "commit-72711e5",
+      "date": "2026-08-22",
       "section": "features",
-      "title": "全站链接高亮：蓝色可点击态",
-      "summary": "修复链接缺乏高亮的问题：项目卡片的 README/源码/打开网站、页脚、README 导览底部、项目追溯与上游链接全部改为 accent 高亮色并加粗；「打开网站」升级为实心主按钮。五套主题下链接均清晰可辨。",
-      "tags": ["链接", "可点击态", "设计系统"],
-      "commit": "本轮提交"
+      "title": "正文排版参数精细化 —— 行距 1.75 + 中文字距",
+      "summary": "- 参照公众号排版黄金规范校准全站正文：卡片摘要/项目描述/轮播卡片/时间线/详情弹层统一行距 1.75、字距 0.015em",
+      "tags": [
+        "自动记录",
+        "样式"
+      ],
+      "commit": "72711e5"
     },
     {
-      "id": "changelog-2026-08-17-redesign",
-      "date": "2026-08-17",
+      "id": "commit-dbff0c4",
+      "date": "2026-08-21",
+      "section": "features",
+      "title": "首页新增作品集轮播 —— 已部署站点横向滑屏",
+      "summary": "- 项目区顶部新增「我的在线作品集」：横向展示所有已部署 GitHub Pages 站点",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
+      "commit": "dbff0c4"
+    },
+    {
+      "id": "commit-3b5f510",
+      "date": "2026-08-21",
+      "section": "features",
+      "title": "全站链接高亮 —— 蓝色可点击态",
+      "summary": "- 项目卡片 README/源码/打开网站链接改为 accent 高亮 + 加粗 600",
+      "tags": [
+        "自动记录",
+        "样式"
+      ],
+      "commit": "3b5f510"
+    },
+    {
+      "id": "commit-ba8a64c",
+      "date": "2026-08-21",
       "section": "features",
       "title": "布局重构与五主题色彩系统设计",
-      "summary": "收起目录按钮移入侧栏右上角（顶栏保留展开入口）；搜索框升级为精致胶囊形（焦点柔和发光 + 快捷键徽章）；五套主题统一建立三层文字明暗节奏（标题视觉锚点 / 正文柔和 / 弱文字退隐），Spectrum 深空主题标题纯白微光，各主题对比度全面拉开。",
-      "tags": ["布局", "色彩系统", "搜索"],
-      "commit": "本轮提交"
+      "summary": "- 收起目录按钮移入侧栏右上角（顶栏保留展开入口，双入口设计）",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
+      "commit": "ba8a64c"
     },
     {
-      "id": "changelog-2026-08-17-modern-palette",
-      "date": "2026-08-17",
+      "id": "commit-ae3e581",
+      "date": "2026-08-21",
       "section": "features",
-      "title": "配色焕新：浅色现代科技风与蓝绿橙功能色",
-      "summary": "Atelier 默认主题切换为浅色现代科技风：浅灰蓝白底 + 科技蓝主调，并按功能分配三色——学习笔记用绿、GitHub 项目用蓝、维护变更用橙；主按钮回归蓝色实心，状态标签与统计数字随功能自然着色。",
-      "tags": ["配色", "设计系统"],
-      "commit": "本轮提交"
+      "title": "配色焕新 —— 浅色现代科技风与蓝绿橙功能色",
+      "summary": "- 根据用户反馈切换配色方向：Atelier 从编辑级暖调改为浅色现代科技风",
+      "tags": [
+        "自动记录",
+        "样式"
+      ],
+      "commit": "ae3e581"
     },
     {
-      "id": "changelog-2026-08-17-palette",
-      "date": "2026-08-17",
+      "id": "commit-cd70612",
+      "date": "2026-08-21",
       "section": "features",
-      "title": "配色精修：奶油纸感与朱砂点睛",
-      "summary": "根据视觉反馈精修 Atelier 配色：背景升级为更通透的奶油白，强调色由冷调勃艮第红换成暖调朱砂红；主按钮改为墨黑，红色仅保留时间线节点、标题强调与通知徽章等小面积点睛，整体更克制高级。",
-      "tags": ["配色", "编辑排版"],
-      "commit": "本轮提交"
+      "title": "配色精修 —— 奶油纸感与朱砂点睛",
+      "summary": "- 根据用户截图标注反馈：勃艮第红主按钮占比过高（导航 15%/项目区 29%），改为墨黑",
+      "tags": [
+        "自动记录",
+        "样式"
+      ],
+      "commit": "cd70612"
     },
     {
-      "id": "changelog-2026-08-17-editorial",
-      "date": "2026-08-17",
+      "id": "commit-415c241",
+      "date": "2026-08-21",
       "section": "features",
-      "title": "编辑级杂志排版与顶部通知中心",
-      "summary": "首页升级为编辑级杂志风格：64px 衬线大标题、首字下沉引言、衬线数据统计与勃艮第红点睛；变更记录移入顶部菜单栏通知铃铛（含未读计数、最近三条预览），点击「查看全部」进入完整时间线对话框。",
-      "tags": ["重构", "编辑排版", "通知中心"],
-      "commit": "本轮提交"
+      "title": "编辑级杂志排版与顶部菜单栏通知中心",
+      "summary": "- 首页 Hero 升级为编辑级杂志风格：64px 衬线大标题、58px 首字下沉引言、右侧竖排衬线数据统计（学习笔记/GitHub 项目/变更记录）",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
+      "commit": "415c241"
     },
     {
-      "id": "changelog-2026-08-17-design-v3",
-      "date": "2026-08-17",
+      "id": "commit-c825f79",
+      "date": "2026-08-21",
       "section": "features",
-      "title": "设计系统 v3：圆角艺术化与变更记录公告条",
-      "summary": "全站样式按第一性原理重写为结构化设计系统，五套主题各自拥有鲜明的圆角性格与柔和分层阴影；变更记录改为顶部公告条（一行摘要不占主界面），点击「查看全部」弹出完整时间线对话框。",
-      "tags": ["重构", "设计系统", "变更记录"],
-      "commit": "本轮提交"
+      "title": "设计系统 v3 —— 圆角艺术化 + 变更记录公告条与时间线对话框",
+      "summary": "- 变更记录改为顶部公告条：一行摘要 + 总数 + 双区块切换 + 查看全部，不占主界面；完整时间线收入对话框（Esc/遮罩/按钮关闭，键盘 Tab 导航）",
+      "tags": [
+        "自动记录",
+        "样式"
+      ],
+      "commit": "c825f79"
     },
     {
-      "id": "changelog-2026-08-16-redesign",
-      "date": "2026-08-16",
+      "id": "commit-1fab163",
+      "date": "2026-08-21",
       "section": "features",
-      "title": "全面重构：全新视觉语言与变更记录时间线",
-      "summary": "以编辑级排版、更克制的高级配色与细腻动效重做整站；新增本页「变更记录」，用时间线同时呈现功能更新与系统说明。",
-      "tags": ["重构", "设计系统", "变更记录"],
-      "commit": "本轮提交"
+      "title": "恢复并强化设计系统，时间线适配五套主题",
+      "summary": "- 恢复上一版完整视觉基线：Apple/Kimi 式克制设计（毛玻璃顶栏、无阴影卡片、大字号层次）",
+      "tags": [
+        "自动记录",
+        "样式"
+      ],
+      "commit": "1fab163"
     },
     {
-      "id": "changelog-2026-08-16-governance",
+      "id": "commit-cbe89cb",
+      "date": "2026-08-21",
+      "section": "features",
+      "title": "全面重构设计系统并新增变更记录时间线",
+      "summary": "- 新增 data/changelog.json 变更记录：功能更新 + 系统说明双区块时间线",
+      "tags": [
+        "自动记录",
+        "重构"
+      ],
+      "commit": "cbe89cb"
+    },
+    {
+      "id": "commit-0998e6f",
       "date": "2026-08-16",
       "section": "features",
       "title": "完善 MIT 许可与仓库治理",
-      "summary": "补充标准 MIT License、版权主体与第三方内容边界，新增 Bug / 功能建议 Issue Forms 与 Pull Request 模板，公开协作更可追溯。",
-      "tags": ["许可", "治理"],
+      "summary": "添加标准 MIT LICENSE 并确认 StarLine 版权主体，在 README 和页面页脚说明授权及第三方边界；同步 Pages 打包、Issue/PR 模板与许可证契约测试。",
+      "tags": [
+        "自动记录",
+        "维护"
+      ],
       "commit": "0998e6f"
     },
     {
-      "id": "changelog-2026-08-16-sidebar",
+      "id": "commit-60be656",
+      "date": "2026-08-16",
+      "section": "features",
+      "title": "记录目录交互部署结果",
+      "summary": "更新开发状态和验证记录，写明 ad13418 与 Actions 31894996210 已成功部署，并移除已经失效的未推送说明。",
+      "tags": [
+        "自动记录",
+        "文档"
+      ],
+      "commit": "60be656"
+    },
+    {
+      "id": "commit-ad13418",
       "date": "2026-08-16",
       "section": "features",
       "title": "完善目录与更多菜单交互",
-      "summary": "桌面端目录可收起并记忆偏好，移动端抽屉带遮罩；「更多」菜单支持外部点击、Esc 与焦点恢复，键盘路径完整。",
-      "tags": ["导航", "无障碍"],
+      "summary": "为折叠侧栏增加明确的展开状态，隔离分类滚动区域，并让更多菜单支持外部点击和 Esc 关闭；补充浏览器烟雾测试及验证记录。",
+      "tags": [
+        "自动记录",
+        "修复"
+      ],
       "commit": "ad13418"
     },
     {
-      "id": "changelog-2026-08-15-project-nav",
+      "id": "commit-bec7741",
       "date": "2026-08-15",
       "section": "features",
       "title": "自动刷新并优化 GitHub 项目导航",
-      "summary": "项目索引每 6 小时自动刷新；「近期优先项目」按近 30 天本人提交与推送排序，旧项目不再因历史提交长期置顶。",
-      "tags": ["GitHub", "项目区"],
+      "summary": "重排首页为 GitHub 项目优先，加入项目/知识关系图、README 引导和可折叠侧栏；Actions 改为每 6 小时采集近 30 天提交活动，前端自动排序近期项目并显示索引新鲜度，同时补齐测试、验证与维护文档。",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
       "commit": "bec7741"
     },
     {
-      "id": "changelog-2026-08-13-knowledge-map",
+      "id": "commit-68a403b",
       "date": "2026-08-13",
       "section": "features",
-      "title": "新增交互式知识地图",
-      "summary": "从笔记、分类、标签与公开项目自动构图，支持搜索保留一跳上下文、拖拽、缩放、节点详情与可访问节点列表。",
-      "tags": ["知识地图", "可视化"],
+      "title": "增加交互式知识地图",
+      "summary": "基于现有笔记与公开项目数据建立分类、标签及人工确认关系，新增可搜索、拖拽和响应式的 SVG 探索视图，并补齐 Pages 打包、契约测试与验证记录。",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
       "commit": "68a403b"
     },
     {
-      "id": "changelog-2026-08-13-private-exclusion",
+      "id": "commit-a67e0b1",
       "date": "2026-08-13",
       "section": "features",
-      "title": "支持私有项目排除与上游变更",
-      "summary": "隐藏名单通过 Actions 变量维护，名称不写入公开索引；Fork 上游被删除时优雅降级，不阻断索引生成。",
-      "tags": ["隐私", "健壮性"],
+      "title": "accept upstream private repository removal",
+      "summary": "Allow the generated exclusion count to be zero when a private repository has already disappeared from the public GitHub API, while preserving the no-name-leak contract.",
+      "tags": [
+        "自动记录",
+        "修复"
+      ],
+      "commit": "a67e0b1"
+    },
+    {
+      "id": "commit-770d0d7",
+      "date": "2026-08-13",
+      "section": "features",
+      "title": "support private project exclusions",
+      "summary": "Add a repository-variable exclusion list to the public GitHub index, keep hidden names out of generated Pages data, and verify the privacy boundary with automated tests.",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
       "commit": "770d0d7"
     },
     {
-      "id": "changelog-2026-08-13-project-browse",
+      "id": "commit-55189d9",
       "date": "2026-08-13",
       "section": "features",
-      "title": "改进 GitHub 项目浏览",
-      "summary": "自建、已部署 Pages、Fork、Star 与项目关系图多标签浏览；项目卡片直接提供 README、源码与在线页面入口。",
-      "tags": ["GitHub", "项目区"],
+      "title": "improve GitHub project browsing",
+      "summary": "Add animated accessible project tabs, derive each Pages link from its repository name, and provide useful project descriptions with automated coverage.",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
       "commit": "55189d9"
     },
     {
-      "id": "changelog-2026-08-13-discover",
+      "id": "commit-d8a2c97",
       "date": "2026-08-13",
       "section": "features",
-      "title": "每日 GitHub 项目自动发现",
-      "summary": "Actions 定时读取公开仓库生成脱敏索引，页面按账号、Pages、Fork、Star 与语言自动归类，私有仓库不进入公开数据。",
-      "tags": ["GitHub", "自动化"],
+      "title": "add daily GitHub project discovery",
+      "summary": "Classify owned and forked repositories, count account-matched default-branch commits, list starred repositories, and refresh the public index daily through the existing Pages workflow without exposing credentials or creating automated commits.",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
       "commit": "d8a2c97"
     },
     {
-      "id": "changelog-2026-08-13-initial",
+      "id": "commit-b3932df",
       "date": "2026-08-13",
       "section": "features",
-      "title": "首个版本：学习笔记管理台",
-      "summary": "零构建静态目录上线：搜索、分类、标签、状态筛选、列表与卡片视图、本地草稿编辑与 JSON 导入导出，直接部署到 GitHub Pages。",
-      "tags": ["首发", "目录"],
+      "title": "add Starline learning view with Pages deployment",
+      "summary": "Add the static note library, validated data, browser smoke test, and a least-privilege GitHub Actions workflow that publishes only production assets.",
+      "tags": [
+        "自动记录",
+        "功能"
+      ],
       "commit": "b3932df"
     },
     {
@@ -173,7 +285,10 @@
       "section": "system",
       "title": "数据模型：仓库为准，本地只存草稿",
       "summary": "data/notes.json 是唯一正式数据源；浏览器 localStorage 只保存未提交草稿，导出 JSON 后通过 Git / PR 更新仓库，浏览器不直接写入 GitHub。",
-      "tags": ["数据", "架构"]
+      "tags": [
+        "数据",
+        "架构"
+      ]
     },
     {
       "id": "system-2026-privacy",
@@ -181,7 +296,10 @@
       "section": "system",
       "title": "隐私与安全边界",
       "summary": "页面、脚本与 localStorage 均不保存 GitHub Token；Actions 仅使用内置短期 GITHUB_TOKEN 读取公开数据，私有仓库与隐藏名单不会进入公开索引。",
-      "tags": ["隐私", "安全"]
+      "tags": [
+        "隐私",
+        "安全"
+      ]
     },
     {
       "id": "system-2026-deploy",
@@ -189,7 +307,10 @@
       "section": "system",
       "title": "部署方式：GitHub Actions + Pages",
       "summary": "推送到 main 触发校验、索引刷新与发布；索引每 6 小时定时刷新，构建过程不产生 Git 提交，页面以最近一次成功 artifact 为准。",
-      "tags": ["部署", "CI"]
+      "tags": [
+        "部署",
+        "CI"
+      ]
     },
     {
       "id": "system-2026-themes",
@@ -197,15 +318,21 @@
       "section": "system",
       "title": "五套视觉主题共享同一套逻辑",
       "summary": "Atelier、Command、Atlas、Blueprint、Spectrum 五套主题只通过 CSS tokens 切换，共享同一份 HTML、数据与 JavaScript，功能只需维护一次。",
-      "tags": ["主题", "设计系统"]
+      "tags": [
+        "主题",
+        "设计系统"
+      ]
     },
     {
       "id": "system-2026-commit-scope",
       "date": "2026-08-15",
       "section": "system",
-      "title": "提交统计口径",
-      "summary": "「本人提交」按 GitHub 账号身份匹配每个公开仓库默认分支统计，不含其他分支、未推送提交或未绑定邮箱的历史；近 30 天统计用于近期优先排序。",
-      "tags": ["数据口径", "GitHub"]
+      "title": "提交统计口径：默认分支总提交",
+      "summary": "提交数量按每个公开仓库默认分支统计总提交，不再依赖作者邮箱与 GitHub 账号身份匹配；近 30 天提交用于近期活动排序。",
+      "tags": [
+        "数据口径",
+        "GitHub"
+      ]
     }
   ]
 }

@@ -26,6 +26,9 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v6
 
+      - name: Generate changelog from Git history
+        run: python scripts/sync_changelog.py --repo . --output data/changelog.json
+
       - name: Refresh public GitHub project index
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -61,13 +61,13 @@ python -m http.server 8000
 
 ## 变更记录
 
-顶部菜单栏的**通知铃铛**（含计数徽章）是变更记录的唯一入口：点击展开通知面板，可查看最近一条摘要、最近三条预览，并切换 `功能更新` / `系统说明` 两个区块；点击面板底部「查看全部」进入完整时间线对话框，数据来自 `data/changelog.json`：
+顶部菜单栏的**通知铃铛**（含计数徽章）是变更记录的唯一入口：点击展开通知面板，可查看最近一条摘要、最近三条预览，并切换 `功能更新` / `系统说明` 两个区块；点击面板底部「查看全部」进入完整时间线对话框。GitHub Actions 会在构建阶段运行 `scripts/sync_changelog.py`，从 Git 提交历史自动生成 `features`，系统说明继续从 `data/changelog.json` 保留：
 
 - `sections`：两个固定区块——`features`（功能更新）与 `system`（系统说明），各自带标签与一句话说明。
 - `entries`：每条记录包含 `id`、`date`（YYYY-MM-DD）、`section`、`title`、`summary`、可选 `tags` 与 `commit`。
 - 对话框按日期倒序渲染，时间线节点、入场动画与标签随五套主题自动换肤；`commit` 字段可对应 Git 提交短哈希。
 
-维护方式：新增功能或达成重要系统约定后，在 `data/changelog.json` 的 `entries` 头部插入一条记录即可；日期请使用当天日期，`section` 必须是已声明的区块 id。
+维护方式：提交到 `main` 或定时 Actions 运行后，功能更新会从 Git 提交自动进入 `entries`；系统说明仍可在 `data/changelog.json` 中维护，日期请使用 `YYYY-MM-DD`，`section` 必须是已声明的区块 id。
 
 ## 数据维护
 
