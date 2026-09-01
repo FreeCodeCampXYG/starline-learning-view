@@ -89,6 +89,14 @@ class GitHubProjectIndexTests(unittest.TestCase):
         link = '<https://api.github.com/repositories/1/commits?per_page=1&page=7>; rel="last"'
         self.assertEqual(MODULE.last_page_from_link(link), 7)
 
+    def test_commit_count_uses_default_branch_total_not_author_filter(self) -> None:
+        payload = [{"commit": {"author": {"date": "2026-08-14T03:00:00Z"}}}]
+        headers = {"link": '<https://api.github.com/repositories/1/commits?per_page=1&page=9>; rel="last"'}
+        with patch.object(MODULE, "github_request_with_headers", return_value=(payload, headers)) as request:
+            count = MODULE.default_branch_commit_count("Starline", "course-note")
+        self.assertEqual(count, 9)
+        self.assertNotIn("author=", request.call_args.args[0])
+
     def test_recent_activity_returns_count_and_latest_commit_time(self) -> None:
         payload = [{"commit": {"author": {"date": "2026-08-14T03:00:00Z"}}}]
         headers = {"link": '<https://api.github.com/repositories/1/commits?per_page=1&page=4>; rel="last"'}

@@ -54,7 +54,7 @@ class FrontendContractTests(unittest.TestCase):
         ):
             self.assertIn(f'id="{element_id}"', html)
             self.assertIn(f'"{element_id}"', script)
-        for project_filter in ("owned", "pages", "forks", "starred", "map"):
+        for project_filter in ("owned", "pages", "forks", "starred", "issues", "pulls", "map"):
             self.assertIn(f'data-project-filter="{project_filter}"', html)
         self.assertLess(html.index('<section class="project-section"'), html.index('<section class="library-section"'))
         self.assertIn('id="collapseSidebar"', html)
@@ -250,6 +250,8 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("renderSearchMeta", script)
         self.assertIn("projectMatchesQuery", script)
         self.assertIn("openPullRequests", script)
+        self.assertIn("projectWorkItems", html)
+        self.assertIn("renderProjectWorkItems", script)
 
 
 if __name__ == "__main__":

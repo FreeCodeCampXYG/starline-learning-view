@@ -141,7 +141,7 @@ function cacheDom() {
     "noteSummary", "noteUrl", "noteRepoUrl", "noteCategory", "noteTags", "noteStatus",
     "noteLinkStatus", "noteMinutes", "noteFeatured", "formError", "importButton",
     "exportButton", "importInput", "resetDraftButton", "toast",
-    "projectGrid", "projectEmpty", "projectResultCount", "projectSyncText", "projectFreshness", "projectSpotlight",
+    "projectGrid", "projectEmpty", "projectWorkItems", "projectWorkItemsEyebrow", "projectWorkItemsTitle", "projectWorkItemsCount", "projectWorkItemsList", "projectWorkItemsEmpty", "projectResultCount", "projectSyncText", "projectFreshness", "projectSpotlight",
     "pagesCarousel", "pagesCarouselTrack", "pagesCarouselDots", "carouselPrev", "carouselNext",
     "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectCommitLabel", "projectCommitHint", "projectIssueCount", "projectPullRequestCount", "projectStarredCount", "commitScope",
     "projectMaintenanceFocus", "projectMaintenanceSummary", "projectMaintenanceList",
@@ -457,7 +457,7 @@ function renderSearchMeta() {
 }
 
 function activateProjectFilter(filter) {
-  if (!["owned", "pages", "forks", "starred", "map"].includes(filter)) return;
+  if (!["owned", "pages", "forks", "starred", "issues", "pulls", "map"].includes(filter)) return;
   const changed = state.projectFilter !== filter;
   state.projectFilter = filter;
   renderProjects({ animate: changed });
@@ -497,9 +497,11 @@ function renderProjects({ animate = false } = {}) {
   window.requestAnimationFrame(positionProjectTabIndicator);
 
   const mapActive = state.projectFilter === "map";
+  const workItemsActive = ["issues", "pulls"].includes(state.projectFilter);
   renderProjectSpotlight();
   renderPagesCarousel();
-  dom.projectGrid.hidden = mapActive;
+  dom.projectGrid.hidden = mapActive || workItemsActive;
+  dom.projectWorkItems.hidden = !workItemsActive;
   dom.projectEmpty.hidden = true;
   dom.projectRelationMap.hidden = !mapActive;
   dom.commitScope.hidden = mapActive;
@@ -515,6 +517,13 @@ function renderProjects({ animate = false } = {}) {
       dom.projectMapEdges.replaceChildren();
       dom.projectMapNodes.replaceChildren();
     }
+    renderProjectProfileSummary();
+    return;
+  }
+
+  if (workItemsActive) {
+    renderProjectWorkItems(state.projectFilter === "pulls" ? "pullRequests" : "issues");
+    dom.projectResultCount.textContent = dom.projectWorkItemsCount.textContent;
     renderProjectProfileSummary();
     return;
   }
@@ -542,6 +551,22 @@ function renderProjects({ animate = false } = {}) {
     projectAnimationTimer = window.setTimeout(() => dom.projectGrid.classList.remove("is-entering"), 560);
   }
   renderProjectProfileSummary();
+}
+
+function renderProjectWorkItems(kind) {
+  const isPullRequest = kind === "pullRequests";
+  const items = state.projects.flatMap((project) => (project[kind] || []).map((item) => ({ ...item, repoName: project.fullName, repoUrl: project.repoUrl })))
+    .filter((item) => !state.query || [item.title, item.repoName, ...(item.labels || []), item.author].join(" ").toLocaleLowerCase("zh-CN").includes(state.query))
+    .sort((a, b) => compareDateDesc(a.updatedAt, b.updatedAt));
+  dom.projectWorkItemsEyebrow.textContent = isPullRequest ? "OPEN PULL REQUESTS / 监测清单" : "OPEN ISSUES / 监测清单";
+  dom.projectWorkItemsTitle.textContent = isPullRequest ? "开放 Pull Requests" : "开放 Issues";
+  dom.projectWorkItemsCount.textContent = String(items.length);
+  dom.projectWorkItemsEmpty.hidden = items.length > 0;
+  dom.projectWorkItemsList.innerHTML = items.map((item) => {
+    const labels = (item.labels || []).map((label) => `<span>${escapeHtml(label)}</span>`).join("");
+    const url = safeHref(item.url);
+    return `<article class="project-work-item"><div class="project-work-item-main"><div class="project-work-item-meta"><span class="work-item-kind">${isPullRequest ? "PR" : "Issue"} #${Number(item.number) || 0}</span><span>${escapeHtml(item.repoName || "公开项目")}</span></div><h4>${url ? `<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "未命名条目")} ↗</a>` : escapeHtml(item.title || "未命名条目")}</h4><div class="project-work-item-tags">${labels}</div></div><time datetime="${escapeAttr(item.updatedAt || "")}">${escapeHtml(formatTimestampDate(item.updatedAt))}</time></article>`;
+  }).join("");
 }
 
 function renderProjectSpotlight() {
@@ -588,7 +613,7 @@ function renderPagesCarousel() {
       || compareDateDesc(a.project.pushedAt || a.project.updatedAt, b.project.pushedAt || b.project.updatedAt))
     .slice(0, 8)
     .map(({ project }) => project);
-  const visible = pages.length > 0 && !["starred", "map"].includes(state.projectFilter);
+  const visible = pages.length > 0 && !["starred", "map", "issues", "pulls"].includes(state.projectFilter);
   dom.pagesCarousel.hidden = !visible;
   if (!visible) {
     stopPagesCarousel();
@@ -706,13 +731,13 @@ function renderProjectProfileSummary() {
     dom.projectForkCount.textContent = String(summary.forked ?? state.projects.filter((project) => project.fork).length);
     const hasRecentCommitTotal = Number.isInteger(summary.recentMatchedDefaultBranchCommits);
     dom.projectCommitCount.textContent = String(hasRecentCommitTotal ? summary.recentMatchedDefaultBranchCommits : (summary.matchedDefaultBranchCommits ?? "—"));
-    dom.projectCommitLabel.textContent = hasRecentCommitTotal ? "近期提交" : "本人提交";
+    dom.projectCommitLabel.textContent = hasRecentCommitTotal ? "近期提交" : "默认分支提交";
     dom.projectCommitHint.textContent = hasRecentCommitTotal ? `近 ${Number(state.projectPayload.activityWindowDays) || 30} 天匹配` : "默认分支匹配";
     dom.projectStarredCount.textContent = String(summary.starred ?? state.starredProjects.length);
     dom.projectIssueCount.textContent = String(Number.isInteger(summary.openIssues) ? summary.openIssues : "—");
     dom.projectPullRequestCount.textContent = String(Number.isInteger(summary.openPullRequests) ? summary.openPullRequests : "—");
     const activityWindowDays = Number(state.projectPayload.activityWindowDays) || 30;
-    const commitScope = state.projectPayload.commitScope || "提交数按 GitHub 账号身份匹配每个公开仓库默认分支统计。";
+    const commitScope = state.projectPayload.commitScope || "提交数按每个公开仓库默认分支统计。";
     dom.commitScope.textContent = `${commitScope} 近期优先区按近 ${activityWindowDays} 天提交和最近推送自动计算。`;
     dom.navProjects.textContent = String(summary.repositories ?? state.projects.length);
     renderProjectMaintenanceFocus();
@@ -767,7 +792,7 @@ function getProjectMaintenanceState(project, now = Date.now()) {
   const level = highPriority ? "active" : (recent ? "recent" : "");
   const label = highPriority ? "近期高频" : (recent ? "近期维护" : "");
   const detail = recentCommitCount !== null && recentCommitCount > 0
-    ? `近 ${activityWindowDays} 天本人 ${recentCommitCount} 次提交`
+    ? `近 ${activityWindowDays} 天 ${recentCommitCount} 次提交`
     : (recent && daysSinceActivity !== null ? `${daysSinceActivity === 0 ? "今天" : `${daysSinceActivity} 天前`}推送` : "");
   const priorityScore = (recentCommitCount || 0) * 20 + (daysSinceActivity === null ? 0 : Math.max(0, activityWindowDays - daysSinceActivity));
   return { active: highPriority, recent, level, label, detail, daysSinceActivity, commitCount, recentCommitCount, priorityScore };
@@ -792,7 +817,7 @@ function renderProjectMaintenanceFocus() {
 
   const activityWindowDays = Number(state.projectPayload.activityWindowDays) || 30;
   const recentCommitTotal = state.projectPayload.summary?.recentMatchedDefaultBranchCommits;
-  const recentCommitCopy = Number.isInteger(recentCommitTotal) ? ` · 本人提交 ${recentCommitTotal} 次` : "";
+  const recentCommitCopy = Number.isInteger(recentCommitTotal) ? ` · 近期提交 ${recentCommitTotal} 次` : "";
   dom.projectMaintenanceSummary.textContent = `自动筛出 ${projects.length} 个 · 近 ${activityWindowDays} 天${recentCommitCopy}；按近期提交与推送排序，每 6 小时刷新。`;
   dom.projectMaintenanceList.innerHTML = projects.slice(0, 4).map(({ project, maintenance }) => {
     const repoUrl = safeHref(project.repoUrl);
@@ -818,7 +843,7 @@ function renderProjectCard(project, starred = false, index = 0) {
   const badges = (starred
     ? [project.language, `${Number(project.stars) || 0} Stars`, "我的收藏"]
     : [project.language, project.hasPages ? "GitHub Pages" : "源码仓库", project.fork ? "Fork" : "自建"]).filter(Boolean);
-  const commitCopy = starred ? `社区 ${Number(project.stars) || 0} Stars` : (Number.isInteger(project.commitCount) ? `本人 ${project.commitCount} 次提交` : "本人提交数未知");
+  const commitCopy = starred ? `社区 ${Number(project.stars) || 0} Stars` : (Number.isInteger(project.commitCount) ? `默认分支 ${project.commitCount} 次提交` : "默认分支提交数未知");
   const issueCopy = Number.isInteger(project.openIssues) ? `Issue ${project.openIssues}` : "Issue —";
   const pullCopy = Number.isInteger(project.openPullRequests) ? `PR ${project.openPullRequests}` : "PR —";
   const upstream = project.upstream?.repoUrl ? `<span class="project-upstream">上游：<a href="${escapeAttr(safeHref(project.upstream.repoUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(project.upstream.fullName || "查看来源")}</a></span>` : "";

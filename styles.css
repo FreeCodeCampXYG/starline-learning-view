@@ -1300,6 +1300,22 @@ select {
 
 .project-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 48px 20px; text-align: center; color: var(--ink-faint); }
 
+.project-work-items { margin-top: 4px; }
+.project-work-items-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.project-work-items-head h3 { margin: 6px 0 0; font-size: 22px; line-height: 1.2; }
+.project-work-items-count { font-size: 30px; font-weight: 750; color: var(--accent); }
+.project-work-items-list { display: grid; gap: 9px; }
+.project-work-item { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 15px 18px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-strong); box-shadow: var(--shadow-1); }
+.project-work-item-main { min-width: 0; }
+.project-work-item-meta { display: flex; gap: 9px; align-items: center; color: var(--ink-faint); font-size: 11px; }
+.work-item-kind { color: var(--accent-ink); font-weight: 750; }
+.project-work-item h4 { margin: 5px 0 7px; font-size: 15px; line-height: 1.4; }
+.project-work-item h4 a { color: var(--ink); text-decoration: none; }
+.project-work-item h4 a:hover { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
+.project-work-item > time { flex: 0 0 auto; color: var(--ink-faint); font-size: 11px; }
+.project-work-item-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.project-work-item-tags span { padding: 3px 8px; border-radius: 999px; background: var(--surface-soft); color: var(--ink-muted); font-size: 10px; }
+
 /* —— 5.3.5 已部署站点轮播 —— */
 .pages-carousel { margin: 34px 0 8px; }
 .pages-carousel-head {
@@ -1938,6 +1954,8 @@ body[data-theme="spectrum"] .notification-panel { background: color-mix(in srgb,
   .toolbar-tail { width: 100%; justify-content: space-between; }
   .notes-grid { grid-template-columns: 1fr; }
   .project-summary { grid-template-columns: repeat(2, 1fr); }
+  .project-work-item { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .project-work-item > time { align-self: flex-end; }
   .notes-grid.is-list .note-card { grid-template-columns: 1fr; gap: 6px; min-height: 0; }
   .notes-grid.is-list .note-card h3 { grid-column: auto; grid-row: auto; }
   .notes-grid.is-list .summary { grid-column: auto; grid-row: auto; }

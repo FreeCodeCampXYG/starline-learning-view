@@ -206,7 +206,7 @@
           <div class="project-maintenance-intro">
             <span class="eyebrow">AUTO PRIORITY / 自动更新</span>
             <h3 id="projectMaintenanceTitle">近期优先项目</h3>
-            <p id="projectMaintenanceSummary">正在根据近期推送和本人提交计算优先级。</p>
+            <p id="projectMaintenanceSummary">正在根据近期推送和默认分支提交计算优先级。</p>
           </div>
           <div class="project-maintenance-list" id="projectMaintenanceList" aria-live="polite"></div>
         </section>
@@ -218,15 +218,22 @@
             <button class="project-tab" id="projectTabPages" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="pages">已部署 Pages</button>
             <button class="project-tab" id="projectTabForks" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="forks">Fork 项目</button>
             <button class="project-tab" id="projectTabStarred" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="starred">我的 Star</button>
+            <button class="project-tab" id="projectTabIssues" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="issues">开放 Issues</button>
+            <button class="project-tab" id="projectTabPullRequests" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="pulls">开放 PR</button>
             <button class="project-tab" id="projectTabMap" type="button" role="tab" aria-selected="false" aria-controls="projectPanel" tabindex="-1" data-project-filter="map">项目关系图</button>
           </div>
           <a class="project-profile-link" href="https://github.com/FreeCodeCampXYG?tab=repositories" target="_blank" rel="noopener noreferrer">GitHub 全部仓库 ↗</a>
         </div>
 
         <div class="project-panel" id="projectPanel" role="tabpanel" aria-labelledby="projectTabOwned" tabindex="0">
-          <p class="commit-scope" id="commitScope">提交数正在读取；统计口径为 GitHub 账号身份匹配的公开仓库默认分支。</p>
+          <p class="commit-scope" id="commitScope">提交数正在读取；统计口径为公开仓库默认分支提交总数。</p>
 
           <div class="project-grid" id="projectGrid" aria-live="polite"></div>
+          <section class="project-work-items" id="projectWorkItems" hidden aria-live="polite">
+            <div class="project-work-items-head"><div><span class="eyebrow" id="projectWorkItemsEyebrow">OPEN ISSUES / 监测清单</span><h3 id="projectWorkItemsTitle">开放 Issues</h3></div><span class="project-work-items-count" id="projectWorkItemsCount">0</span></div>
+            <div class="project-work-items-list" id="projectWorkItemsList"></div>
+            <div class="project-empty" id="projectWorkItemsEmpty" hidden><strong>当前没有开放条目</strong><span>Actions 下一次刷新后会同步最新状态。</span></div>
+          </section>
           <div class="project-empty" id="projectEmpty" hidden>
             <strong>没有匹配的公开项目</strong>
             <span>可切换项目范围，或清除顶部搜索词。</span>

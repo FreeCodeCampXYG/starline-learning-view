@@ -114,8 +114,8 @@ def last_page_from_link(link_header: str) -> int | None:
 
 
 def default_branch_commit_count(owner: str, repository_name: str, token: str | None = None) -> int | None:
-    """统计账号身份在仓库默认分支上的匹配提交；失败返回未知。"""
-    query = urllib.parse.urlencode({"author": owner, "per_page": 1})
+    """统计仓库默认分支的提交总数；失败返回未知。"""
+    query = urllib.parse.urlencode({"per_page": 1})
     url = f"{API_ROOT}/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repository_name)}/commits?{query}"
     try:
         payload, headers = github_request_with_headers(url, token)
@@ -135,8 +135,8 @@ def recent_default_branch_activity(
     since: str,
     token: str | None = None,
 ) -> tuple[int | None, str | None]:
-    """统计时间窗口内的本人默认分支提交，并返回最近一次匹配提交时间。"""
-    query = urllib.parse.urlencode({"author": owner, "since": since, "per_page": 1})
+    """统计时间窗口内默认分支提交，并返回最近一次提交时间。"""
+    query = urllib.parse.urlencode({"since": since, "per_page": 1})
     url = f"{API_ROOT}/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repository_name)}/commits?{query}"
     try:
         payload, headers = github_request_with_headers(url, token)
@@ -228,6 +228,8 @@ def normalize_repository(
     open_issues: int | None = None,
     open_pull_requests: int | None = None,
     watchers: int | None = None,
+    issues: list[dict[str, Any]] | None = None,
+    pull_requests: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """裁剪 GitHub 响应，只保留公开网页所需且稳定的字段。"""
     name = str(repository.get("name") or "").strip()
@@ -257,6 +259,8 @@ def normalize_repository(
         "watchers": watchers if isinstance(watchers, int) else int(repository.get("subscribers_count") or 0),
         "openIssues": open_issues if isinstance(open_issues, int) else int(repository.get("open_issues_count") or 0),
         "openPullRequests": open_pull_requests if isinstance(open_pull_requests, int) else None,
+        "issues": issues or [],
+        "pullRequests": pull_requests or [],
         "defaultBranch": str(repository.get("default_branch") or "main"),
         "sizeKb": int(repository.get("size") or 0),
         "createdAt": str(repository.get("created_at") or ""),
@@ -264,7 +268,7 @@ def normalize_repository(
         "recentCommitCount": recent_commit_count,
         "lastMatchedCommitAt": last_matched_commit_at,
         "recentReleaseAt": recent_release_at,
-        "commitScope": "GitHub 账号身份匹配的默认分支提交",
+        "commitScope": "仓库默认分支提交总数",
         "upstream": upstream,
         "updatedAt": str(repository.get("updated_at") or ""),
         "pushedAt": str(repository.get("pushed_at") or ""),
@@ -302,6 +306,8 @@ def build_payload(
     upstreams: dict[str, dict[str, str] | None] | None = None,
     open_issues: dict[str, int | None] | None = None,
     open_pull_requests: dict[str, int | None] | None = None,
+    issues_by_repository: dict[str, list[dict[str, Any]]] | None = None,
+    pull_requests_by_repository: dict[str, list[dict[str, Any]]] | None = None,
     starred_repositories: list[dict[str, Any]] | None = None,
     excluded_repositories: int = 0,
     activity_window_days: int = 30,
@@ -313,6 +319,8 @@ def build_payload(
     upstreams = upstreams or {}
     open_issues = open_issues or {}
     open_pull_requests = open_pull_requests or {}
+    issues_by_repository = issues_by_repository or {}
+    pull_requests_by_repository = pull_requests_by_repository or {}
     projects = [normalize_repository(
         repository,
         owner,
@@ -322,6 +330,8 @@ def build_payload(
         upstream=upstreams.get(str(repository.get("name") or "")),
         open_issues=open_issues.get(str(repository.get("name") or "")),
         open_pull_requests=open_pull_requests.get(str(repository.get("name") or "")),
+        issues=issues_by_repository.get(str(repository.get("name") or "")),
+        pull_requests=pull_requests_by_repository.get(str(repository.get("name") or "")),
     ) for repository in repositories]
     projects.sort(key=lambda item: (item["updatedAt"], item["name"].casefold()), reverse=True)
     starred = [normalize_starred(repository) for repository in (starred_repositories or [])]
@@ -336,7 +346,7 @@ def build_payload(
         "owner": owner,
         "generatedAt": generated_at or dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "source": f"https://api.github.com/users/{owner}/repos",
-        "commitScope": "按 GitHub 账号身份匹配每个公开仓库默认分支上的提交；不含其他分支、未推送提交或未绑定身份的邮箱提交。",
+        "commitScope": "按每个公开仓库默认分支统计提交总数；不含其他分支或未推送提交。",
         "activityWindowDays": activity_window_days,
         "summary": {
             "repositories": len(projects),
@@ -391,6 +401,37 @@ def open_pull_request_count(owner: str, repository_name: str, token: str | None 
     return last_page if last_page is not None else len(payload)
 
 
+def list_open_work_items(owner: str, repository_name: str, token: str | None = None) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """读取仓库最近开放的 Issue 与 PR，供前端监测；失败时返回空列表。"""
+    query = urllib.parse.urlencode({"state": "open", "sort": "updated", "direction": "desc", "per_page": 100})
+    url = f"{API_ROOT}/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repository_name)}/issues?{query}"
+    try:
+        payload = github_request(url, token)
+    except RuntimeError:
+        return [], []
+    if not isinstance(payload, list):
+        return [], []
+    issues: list[dict[str, Any]] = []
+    pull_requests: list[dict[str, Any]] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        target = pull_requests if isinstance(item.get("pull_request"), dict) else issues
+        labels = item.get("labels") if isinstance(item.get("labels"), list) else []
+        user = item.get("user") if isinstance(item.get("user"), dict) else {}
+        target.append({
+            "number": int(item.get("number") or 0),
+            "title": str(item.get("title") or "").strip(),
+            "url": str(item.get("html_url") or ""),
+            "updatedAt": str(item.get("updated_at") or ""),
+            "createdAt": str(item.get("created_at") or ""),
+            "author": str(user.get("login") or ""),
+            "labels": [str(label.get("name") or "") for label in labels if isinstance(label, dict) and str(label.get("name") or "").strip()][:6],
+            "draft": bool(item.get("draft")),
+        })
+    return issues, pull_requests
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate a public GitHub project index for the static site.")
     parser.add_argument("--owner", required=True, help="GitHub user or organization name.")
@@ -443,6 +484,12 @@ def main() -> None:
         for repository in repositories
         if (pull_count := open_pull_requests.get(str(repository.get("name") or ""))) is not None
     }
+    work_items = {
+        str(repository.get("name") or ""): list_open_work_items(args.owner, str(repository.get("name") or ""), token)
+        for repository in repositories
+    }
+    issues_by_repository = {name: items[0] for name, items in work_items.items()}
+    pull_requests_by_repository = {name: items[1] for name, items in work_items.items()}
     starred_repositories, _ = filter_excluded_repositories(
         list_starred_repositories(args.owner, token),
         excluded,
@@ -456,6 +503,8 @@ def main() -> None:
         upstreams=upstreams,
         open_issues=open_issues,
         open_pull_requests=open_pull_requests,
+        issues_by_repository=issues_by_repository,
+        pull_requests_by_repository=pull_requests_by_repository,
         starred_repositories=starred_repositories,
         excluded_repositories=excluded_count,
         activity_window_days=activity_window_days,
