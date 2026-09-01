@@ -21,7 +21,8 @@ const knowledgeMapState = {
   pointer: null,
   scale: 1,
   tx: 0,
-  ty: 0
+  ty: 0,
+  suppressClick: false
 };
 
 function initializeKnowledgeMapEvents() {
@@ -200,27 +201,25 @@ function handleKnowledgeMapSearchKeydown(event) {
 }
 
 function initializeKnowledgeMapPositions(nodes, reset = false) {
-  const kindRadius = { domain: 80, category: 180, note: 310, project: 390, tag: 430 };
-  const kindGroups = new Map();
-  nodes.forEach((node) => {
-    if (!kindGroups.has(node.kind)) kindGroups.set(node.kind, []);
-    kindGroups.get(node.kind).push(node);
-  });
-  kindGroups.forEach((kindNodes, kind) => {
-    kindNodes.forEach((node, index) => {
-      if (!reset && knowledgeMapState.positions.has(node.id)) return;
-      const hash = [...node.id].reduce((value, character) => ((value * 31) + character.charCodeAt(0)) >>> 0, 7);
-      const angle = ((index / Math.max(kindNodes.length, 1)) * Math.PI * 2) + (hash % 31) / 50;
-      const radius = kindRadius[kind] || 250;
-      knowledgeMapState.positions.set(node.id, {
-        x: 480 + Math.cos(angle) * radius,
-        y: 280 + Math.sin(angle) * radius * 0.55,
-        vx: 0,
-        vy: 0,
-        fixed: false
-      });
+  const count = Math.max(nodes.length, 1);
+  nodes.forEach((node, index) => {
+    if (!reset && knowledgeMapState.positions.has(node.id)) return;
+    const hash = [...node.id].reduce((value, character) => ((value * 31) + character.charCodeAt(0)) >>> 0, 7);
+    const angle = index * Math.PI * (3 - Math.sqrt(5)) + (hash % 23) / 50;
+    const radius = Math.sqrt((index + 0.6) / count);
+    knowledgeMapState.positions.set(node.id, {
+      x: 480 + Math.cos(angle) * 390 * radius,
+      y: 265 + Math.sin(angle) * 215 * radius,
+      vx: 0,
+      vy: 0,
+      fixed: false
     });
   });
+}
+
+function knowledgeMapNodeCollisionWidth(node) {
+  const length = [...String(node.label || "")].length;
+  return Math.max(54, Math.min(104, Math.min(length, 8) * 11 + 16));
 }
 
 function buildKnowledgeMapSvg(nodes, edges) {
@@ -266,6 +265,14 @@ function buildKnowledgeMapSvg(nodes, edges) {
     hitArea.setAttribute("r", "30");
     const shape = knowledgeMapNodeShape(node.kind);
     shape.classList.add("knowledge-map-node-shape");
+    const nodeColor = KNOWLEDGE_MAP_COLORS[node.kind] || "#64748b";
+    shape.setAttribute("fill", nodeColor);
+    shape.setAttribute("fill-opacity", "0.16");
+    shape.setAttribute("stroke", nodeColor);
+    shape.setAttribute("stroke-width", "1.7");
+    shape.style.fill = nodeColor;
+    shape.style.fillOpacity = "0.16";
+    shape.style.stroke = nodeColor;
     const label = document.createElementNS(ns, "text");
     label.classList.add("knowledge-map-node-label");
     label.setAttribute("y", "34");
@@ -273,10 +280,20 @@ function buildKnowledgeMapSvg(nodes, edges) {
     group.append(title, hitArea, shape, label);
     group.addEventListener("pointerdown", beginKnowledgeMapNodeDrag);
     group.addEventListener("keydown", handleKnowledgeMapNodeKeydown);
-    group.addEventListener("click", () => selectKnowledgeMapNode(node.id));
+    group.addEventListener("click", () => {
+      if (!knowledgeMapState.suppressClick) selectKnowledgeMapNode(node.id);
+    });
     dom.knowledgeMapNodes.append(group);
   });
 }
+
+const KNOWLEDGE_MAP_COLORS = {
+  domain: "#2563eb",
+  category: "#64748b",
+  note: "#3b82f6",
+  project: "#2563eb",
+  tag: "#ea580c"
+};
 
 function truncateKnowledgeMapLabel(value, limit) {
   const characters = [...String(value || "")];
@@ -333,7 +350,7 @@ function startKnowledgeMapSimulation() {
     simulateKnowledgeMapStep();
     updateKnowledgeMapPositions();
     knowledgeMapState.ticks += 1;
-    if (knowledgeMapState.ticks < 280) knowledgeMapState.frame = requestAnimationFrame(tick);
+    if (knowledgeMapState.ticks < 360) knowledgeMapState.frame = requestAnimationFrame(tick);
   };
   knowledgeMapState.frame = requestAnimationFrame(tick);
 }
@@ -346,6 +363,7 @@ function stopKnowledgeMapSimulation() {
 function simulateKnowledgeMapStep() {
   const nodes = knowledgeMapState.nodes;
   const positions = knowledgeMapState.positions;
+  const collisionWidths = nodes.map(knowledgeMapNodeCollisionWidth);
   for (let index = 0; index < nodes.length; index += 1) {
     const first = positions.get(nodes[index].id);
     if (!first || first.fixed) continue;
@@ -359,10 +377,21 @@ function simulateKnowledgeMapStep() {
       dx /= distance; dy /= distance;
       first.vx += dx * force; first.vy += dy * force;
       if (!second.fixed) { second.vx -= dx * force; second.vy -= dy * force; }
-      if (distance < 64) {
-        const collision = (64 - distance) * 0.035;
-        first.vx += dx * collision; first.vy += dy * collision;
-        if (!second.fixed) { second.vx -= dx * collision; second.vy -= dy * collision; }
+      const minX = (collisionWidths[index] + collisionWidths[otherIndex]) / 2;
+      const minY = 58;
+      const overlapX = minX - Math.abs(first.x - second.x);
+      const overlapY = minY - Math.abs(first.y - second.y);
+      if (overlapX > 0 && overlapY > 0) {
+        const separateOnX = (overlapX / minX) < (overlapY / minY);
+        const direction = separateOnX ? (first.x >= second.x ? 1 : -1) : (first.y >= second.y ? 1 : -1);
+        const collision = Math.min(3.2, (separateOnX ? overlapX : overlapY) * 0.08);
+        if (separateOnX) {
+          first.vx += direction * collision;
+          if (!second.fixed) second.vx -= direction * collision;
+        } else {
+          first.vy += direction * collision;
+          if (!second.fixed) second.vy -= direction * collision;
+        }
       }
     }
     first.vx += (480 - first.x) * 0.0006;
@@ -382,7 +411,8 @@ function simulateKnowledgeMapStep() {
     const point = positions.get(node.id);
     if (!point || point.fixed) return;
     point.vx *= 0.84; point.vy *= 0.84;
-    point.x = Math.max(35, Math.min(925, point.x + point.vx));
+    const halfWidth = collisionWidths[index] / 2;
+    point.x = Math.max(halfWidth + 8, Math.min(952 - halfWidth, point.x + point.vx));
     point.y = Math.max(35, Math.min(515, point.y + point.vy));
   });
 }
@@ -394,7 +424,7 @@ function beginKnowledgeMapNodeDrag(event) {
   const point = knowledgeMapState.positions.get(id);
   if (!point) return;
   point.fixed = true;
-  knowledgeMapState.pointer = { type: "node", id };
+  knowledgeMapState.pointer = { type: "node", id, moved: false };
   event.currentTarget.setPointerCapture(event.pointerId);
   dom.knowledgeMapGraph.classList.add("dragging-node");
 }
@@ -412,7 +442,10 @@ function moveKnowledgeMapPointer(event) {
   if (pointer.type === "node") {
     const point = knowledgeMapState.positions.get(pointer.id);
     const next = knowledgeMapPoint(event);
-    if (point) { point.x = next.x; point.y = next.y; point.vx = 0; point.vy = 0; }
+    if (point) {
+      point.x = next.x; point.y = next.y; point.vx = 0; point.vy = 0;
+      pointer.moved = true;
+    }
     updateKnowledgeMapPositions();
     return;
   }
@@ -424,6 +457,7 @@ function moveKnowledgeMapPointer(event) {
 
 function endKnowledgeMapPointer() {
   const pointer = knowledgeMapState.pointer;
+  knowledgeMapState.suppressClick = Boolean(pointer?.type === "node" && pointer.moved);
   if (pointer?.type === "node") {
     const point = knowledgeMapState.positions.get(pointer.id);
     if (point) point.fixed = false;
@@ -431,6 +465,7 @@ function endKnowledgeMapPointer() {
   }
   knowledgeMapState.pointer = null;
   dom.knowledgeMapGraph.classList.remove("dragging-node", "panning");
+  window.setTimeout(() => { knowledgeMapState.suppressClick = false; }, 0);
 }
 
 function knowledgeMapPoint(event) {

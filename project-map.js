@@ -283,6 +283,14 @@ function buildProjectMapSvg(nodes, edges) {
     hitArea.setAttribute("r", "30");
     const shape = projectMapNodeShape(node.kind);
     shape.classList.add("project-map-node-shape");
+    const nodeColor = PROJECT_MAP_COLORS[node.kind] || "#64748b";
+    shape.setAttribute("fill", nodeColor);
+    shape.setAttribute("fill-opacity", "0.16");
+    shape.setAttribute("stroke", nodeColor);
+    shape.setAttribute("stroke-width", "1.7");
+    shape.style.fill = nodeColor;
+    shape.style.fillOpacity = "0.16";
+    shape.style.stroke = nodeColor;
     const label = document.createElementNS(namespace, "text");
     label.classList.add("project-map-node-label");
     label.setAttribute("y", "33");
@@ -298,6 +306,14 @@ function buildProjectMapSvg(nodes, edges) {
     dom.projectMapNodes.append(group);
   });
 }
+
+const PROJECT_MAP_COLORS = {
+  account: "#2563eb",
+  repository: "#64748b",
+  language: "#3b82f6",
+  upstream: "#ea580c",
+  capability: "#16a34a"
+};
 
 function projectMapNodeShape(kind) {
   const namespace = "http://www.w3.org/2000/svg";
