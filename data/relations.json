@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.0.0",
-  "updatedAt": "2026-08-13",
+  "schemaVersion": "1.1.0",
+  "updatedAt": "2026-09-01T13:11:45Z",
   "relations": [
     {
       "id": "skill-course-to-meta-skill",
@@ -73,6 +73,177 @@
       "targetType": "note",
       "targetId": "first-principles-product-design",
       "relation": "为界面决策提供信息结构基础"
+    },
+    {
+      "id": "derived-note-project-1e93e2f925",
+      "sourceType": "note",
+      "sourceId": "safe-git-delivery",
+      "targetType": "project",
+      "targetId": "starline-git-submit",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 6,
+      "evidence": [
+        "git",
+        "pr"
+      ]
+    },
+    {
+      "id": "derived-note-project-ca70a0357b",
+      "sourceType": "note",
+      "sourceId": "multimodal-study-notes",
+      "targetType": "project",
+      "targetId": "starline-study-web",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 4,
+      "evidence": [
+        "ppt",
+        "txt"
+      ]
+    },
+    {
+      "id": "derived-note-project-79683e9665",
+      "sourceType": "note",
+      "sourceId": "agent-workflow-primer",
+      "targetType": "project",
+      "targetId": "oh-my-writing-skill",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "agent"
+      ]
+    },
+    {
+      "id": "derived-note-project-76a5177eaf",
+      "sourceType": "note",
+      "sourceId": "agent-workflow-primer",
+      "targetType": "project",
+      "targetId": "starline-meta-skill",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "agent"
+      ]
+    },
+    {
+      "id": "derived-note-project-9b3f1df6e7",
+      "sourceType": "note",
+      "sourceId": "agent-workflow-primer",
+      "targetType": "project",
+      "targetId": "starline-obsidian-archive",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "agent"
+      ]
+    },
+    {
+      "id": "derived-note-project-a610406b5d",
+      "sourceType": "note",
+      "sourceId": "agent-workflow-primer",
+      "targetType": "project",
+      "targetId": "system-prompts-and-models-of-ai-tools",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "agent"
+      ]
+    },
+    {
+      "id": "derived-note-project-36e2be1b48",
+      "sourceType": "note",
+      "sourceId": "ai-skill-course-04",
+      "targetType": "project",
+      "targetId": "starline-gzh-design",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "skill"
+      ]
+    },
+    {
+      "id": "derived-note-project-2186b6534e",
+      "sourceType": "note",
+      "sourceId": "ai-skill-course-04",
+      "targetType": "project",
+      "targetId": "starline-video-prompt",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "skill"
+      ]
+    },
+    {
+      "id": "derived-note-project-c5ce4be1f0",
+      "sourceType": "note",
+      "sourceId": "codex-proxy-diagnostics",
+      "targetType": "project",
+      "targetId": "claude-code-proxy",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "proxy"
+      ]
+    },
+    {
+      "id": "derived-note-project-c8ecb9cfdd",
+      "sourceType": "note",
+      "sourceId": "codex-proxy-diagnostics",
+      "targetType": "project",
+      "targetId": "codex-webview-fix",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "codex"
+      ]
+    },
+    {
+      "id": "derived-note-project-1d56f9a27a",
+      "sourceType": "note",
+      "sourceId": "codex-proxy-diagnostics",
+      "targetType": "project",
+      "targetId": "starline-dsh-desktop",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "proxy"
+      ]
+    },
+    {
+      "id": "derived-note-project-01eef7f9cb",
+      "sourceType": "note",
+      "sourceId": "codex-proxy-diagnostics",
+      "targetType": "project",
+      "targetId": "starline-gzh-design",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "codex"
+      ]
+    },
+    {
+      "id": "derived-note-project-6a250cd8ab",
+      "sourceType": "note",
+      "sourceId": "prompt-engineering-foundations",
+      "targetType": "project",
+      "targetId": "starline-video-prompt",
+      "relation": "内容与技术栈存在字段关联",
+      "origin": "derived",
+      "score": 3,
+      "evidence": [
+        "prompt"
+      ]
     }
   ]
 }

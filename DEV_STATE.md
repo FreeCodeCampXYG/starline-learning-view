@@ -10,6 +10,18 @@
 
 ## 已完成
 
+### 2026-09-02 自动梳理知识图谱关系
+
+- 新增 `scripts/sync_relations.py`：根据笔记标题、摘要、分类、标签与公开项目名称、描述、Topics、语言字段生成可解释的 `derived` 笔记-项目关系，保留人工关系并写入命中证据与分数。
+- Pages Actions 在刷新 GitHub 项目索引后自动重建关系；知识地图项目节点覆盖所有公开索引项目（含 Fork），避免关系端点被过滤。
+- 本地生成 13 条派生关系、保留 9 条人工关系；Python 测试 26 项、JS 语法检查和 JSON/diff 检查通过。
+- 当前索引尚无语言字节占比字段，自动评分使用主语言/语言列表；按比例加权需后续扩展 GitHub languages API 采集。
+
+### 2026-09-02 线上缓存与全局 CSS 覆盖收口
+
+- 图谱节点样式通过 JS `style.setProperty(..., "important")` 直接写入，避免全局 CSS 覆盖；脚本路径保持原有契约，未引入破坏性缓存参数。
+- 提交 `a7b5884` 已推送；Actions run `33529823399` 的静态校验和 Pages 部署均成功。
+
 ### 2026-09-01 Pages Actions 浅克隆导致静态校验失败
 
 - 失败 run `33514784521` 已定位：`sync_changelog.py` 在 `actions/checkout@v7` 默认 `fetch-depth: 1` 下只生成 6 条记录，契约测试要求至少 10 条，因此 `test_changelog_is_present_and_valid` 失败。

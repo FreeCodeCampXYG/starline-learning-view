@@ -273,6 +273,7 @@ function buildProjectMapSvg(nodes, edges) {
     group.classList.toggle("search-context", Boolean(projectMapState.query && !projectMapState.matchIds.has(node.id)));
     group.dataset.projectMapNodeId = node.id;
     group.dataset.projectMapKind = node.kind;
+    group.style.setProperty("--float-delay", `${(node.id.length * 41) % 1800}ms`);
     group.setAttribute("tabindex", "0");
     group.setAttribute("role", "button");
     group.setAttribute("aria-label", `${node.label}，${PROJECT_MAP_KIND_LABELS[node.kind]}节点`);

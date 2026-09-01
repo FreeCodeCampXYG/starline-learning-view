@@ -38,6 +38,9 @@ jobs:
           HIDDEN_GITHUB_REPOSITORIES: ${{ vars.HIDDEN_GITHUB_REPOSITORIES }}
         run: python scripts/sync_github_projects.py --owner FreeCodeCampXYG --output data/github-projects.json
 
+      - name: Rebuild derived knowledge relations
+        run: python scripts/sync_relations.py --notes data/notes.json --projects data/github-projects.json --relations data/relations.json
+
       - name: Validate static site
         shell: bash
         run: |

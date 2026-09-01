@@ -112,7 +112,8 @@ function buildKnowledgeMapGraph() {
   const nodes = new Map();
   const edges = new Map();
   const notes = getFilteredNotes();
-  const ownedProjects = state.projects.filter((project) => !project.fork);
+  // 项目关系需要覆盖公开索引中的 Fork；否则关系端点会因过滤而消失。
+  const ownedProjects = state.projects.filter((project) => project);
 
   const addNode = (node) => {
     if (!nodes.has(node.id)) nodes.set(node.id, node);
@@ -174,7 +175,7 @@ function normalizeKnowledgeMapSearch(value) {
 
 function findKnowledgeMapMatches(nodes, edges, query) {
   const matches = new Set();
-  nodes.forEach((node) => {
+  nodes.forEach((node, index) => {
     const corpus = [node.label, node.description, node.kind, node.sourceId]
       .filter(Boolean).join(" ").toLocaleLowerCase("zh-CN");
     if (corpus.includes(query)) matches.add(node.id);
@@ -248,13 +249,14 @@ function buildKnowledgeMapSvg(nodes, edges) {
     }
   });
 
-  nodes.forEach((node) => {
+  nodes.forEach((node, index) => {
     const group = document.createElementNS(ns, "g");
     group.classList.add("knowledge-map-node");
     group.classList.toggle("search-match", knowledgeMapState.matchIds.has(node.id));
     group.classList.toggle("search-context", Boolean(knowledgeMapState.query && !knowledgeMapState.matchIds.has(node.id)));
     group.dataset.nodeId = node.id;
     group.dataset.mapKind = node.kind;
+    group.style.setProperty("--float-delay", `${(node.id.length * 37) % 1800}ms`);
     group.setAttribute("tabindex", "0");
     group.setAttribute("role", "button");
     group.setAttribute("aria-label", `${node.label}，${KNOWLEDGE_MAP_KIND_LABELS[node.kind]}节点`);
@@ -407,7 +409,7 @@ function simulateKnowledgeMapStep() {
     if (!source.fixed) { source.vx += (dx / distance) * force; source.vy += (dy / distance) * force; }
     if (!target.fixed) { target.vx -= (dx / distance) * force; target.vy -= (dy / distance) * force; }
   });
-  nodes.forEach((node) => {
+  nodes.forEach((node, index) => {
     const point = positions.get(node.id);
     if (!point || point.fixed) return;
     point.vx *= 0.84; point.vy *= 0.84;
@@ -424,6 +426,7 @@ function beginKnowledgeMapNodeDrag(event) {
   const point = knowledgeMapState.positions.get(id);
   if (!point) return;
   point.fixed = true;
+  event.currentTarget.classList.add("is-dragging");
   knowledgeMapState.pointer = { type: "node", id, moved: false };
   event.currentTarget.setPointerCapture(event.pointerId);
   dom.knowledgeMapGraph.classList.add("dragging-node");
@@ -464,6 +467,7 @@ function endKnowledgeMapPointer() {
     if (!knowledgeMapState.paused) startKnowledgeMapSimulation();
   }
   knowledgeMapState.pointer = null;
+  dom.knowledgeMapNodes.querySelectorAll(".is-dragging").forEach((node) => node.classList.remove("is-dragging"));
   dom.knowledgeMapGraph.classList.remove("dragging-node", "panning");
   window.setTimeout(() => { knowledgeMapState.suppressClick = false; }, 0);
 }

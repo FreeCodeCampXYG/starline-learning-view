@@ -137,6 +137,7 @@ class FrontendContractTests(unittest.TestCase):
         self.assertIn("state.projects.filter", map_script)
         self.assertIn("knowledge-map.js", workflow)
         self.assertIn("data/relations.json", workflow)
+        self.assertIn("sync_relations.py", workflow)
         self.assertGreater(len(relations["relations"]), 0)
 
     def test_explicit_relation_endpoints_exist(self) -> None:
@@ -145,7 +146,7 @@ class FrontendContractTests(unittest.TestCase):
         relations = json.loads((ROOT / "data" / "relations.json").read_text(encoding="utf-8"))["relations"]
         known = {
             "note": {note["id"] for note in notes},
-            "project": {project["name"] for project in projects if not project["fork"]},
+            "project": {project["name"] for project in projects},
         }
         relation_ids: set[str] = set()
         for relation in relations:
