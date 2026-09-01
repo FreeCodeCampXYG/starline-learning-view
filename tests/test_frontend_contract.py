@@ -241,6 +241,16 @@ class FrontendContractTests(unittest.TestCase):
             self.assertIn("recentReleaseAt", project)
             self.assertIn("disabled", project)
 
+    def test_global_search_and_activity_metrics_are_wired(self) -> None:
+        """搜索反馈、清空入口和近期活动统计必须由同一份公开索引驱动。"""
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        script = (ROOT / "app.js").read_text(encoding="utf-8")
+        for element_id in ("clearSearch", "searchMeta", "projectIssueCount", "projectPullRequestCount"):
+            self.assertIn(f'id="{element_id}"', html)
+        self.assertIn("renderSearchMeta", script)
+        self.assertIn("projectMatchesQuery", script)
+        self.assertIn("openPullRequests", script)
+
 
 if __name__ == "__main__":
     unittest.main()

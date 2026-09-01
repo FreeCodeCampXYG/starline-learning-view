@@ -57,6 +57,8 @@ def github_request_with_headers(url: str, token: str | None = None) -> tuple[Any
         raise RuntimeError(f"GitHub API 请求失败：HTTP {exc.code} {url}") from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(f"GitHub API 无法访问：{exc.reason}") from exc
+    except OSError as exc:
+        raise RuntimeError(f"GitHub API 网络连接中断：{exc}") from exc
 
 
 def github_request(url: str, token: str | None = None) -> Any:
@@ -168,7 +170,7 @@ def fork_upstream(repository: dict[str, Any], token: str | None = None) -> dict[
         return None
     try:
         detail = github_request(f"{API_ROOT}/repos/{full_name}", token)
-    except RuntimeError:
+    except (RuntimeError, OSError):
         return None
     parent = detail.get("parent") if isinstance(detail, dict) else None
     if not isinstance(parent, dict):
@@ -254,7 +256,7 @@ def normalize_repository(
         "forks": int(repository.get("forks_count") or 0),
         "watchers": watchers if isinstance(watchers, int) else int(repository.get("subscribers_count") or 0),
         "openIssues": open_issues if isinstance(open_issues, int) else int(repository.get("open_issues_count") or 0),
-        "openPullRequests": open_pull_requests if isinstance(open_pull_requests, int) else 0,
+        "openPullRequests": open_pull_requests if isinstance(open_pull_requests, int) else None,
         "defaultBranch": str(repository.get("default_branch") or "main"),
         "sizeKb": int(repository.get("size") or 0),
         "createdAt": str(repository.get("created_at") or ""),
@@ -298,6 +300,8 @@ def build_payload(
     recent_commit_counts: dict[str, int | None] | None = None,
     last_matched_commit_at: dict[str, str | None] | None = None,
     upstreams: dict[str, dict[str, str] | None] | None = None,
+    open_issues: dict[str, int | None] | None = None,
+    open_pull_requests: dict[str, int | None] | None = None,
     starred_repositories: list[dict[str, Any]] | None = None,
     excluded_repositories: int = 0,
     activity_window_days: int = 30,
@@ -307,6 +311,8 @@ def build_payload(
     recent_commit_counts = recent_commit_counts or {}
     last_matched_commit_at = last_matched_commit_at or {}
     upstreams = upstreams or {}
+    open_issues = open_issues or {}
+    open_pull_requests = open_pull_requests or {}
     projects = [normalize_repository(
         repository,
         owner,
@@ -314,6 +320,8 @@ def build_payload(
         recent_commit_count=recent_commit_counts.get(str(repository.get("name") or "")),
         last_matched_commit_at=last_matched_commit_at.get(str(repository.get("name") or "")),
         upstream=upstreams.get(str(repository.get("name") or "")),
+        open_issues=open_issues.get(str(repository.get("name") or "")),
+        open_pull_requests=open_pull_requests.get(str(repository.get("name") or "")),
     ) for repository in repositories]
     projects.sort(key=lambda item: (item["updatedAt"], item["name"].casefold()), reverse=True)
     starred = [normalize_starred(repository) for repository in (starred_repositories or [])]
@@ -342,7 +350,7 @@ def build_payload(
             "forks": sum(project["forks"] for project in projects),
             "watchers": sum(project["watchers"] for project in projects),
             "openIssues": sum(project["openIssues"] for project in projects),
-            "openPullRequests": sum(project["openPullRequests"] for project in projects),
+            "openPullRequests": sum(project["openPullRequests"] for project in projects if isinstance(project["openPullRequests"], int)),
             "languages": sorted({language for language in languages if language}),
             "licenses": sorted({license_info["name"] for license_info in licenses if license_info.get("name")}),
             "starred": len(starred),
@@ -367,6 +375,20 @@ def recent_release_at(owner: str, repository_name: str, token: str | None = None
     if not isinstance(latest, dict):
         return None
     return str(latest.get("published_at") or "") or None
+
+
+def open_pull_request_count(owner: str, repository_name: str, token: str | None = None) -> int | None:
+    """统计开放 PR；失败时返回未知，避免把抓取失败伪装成零。"""
+    query = urllib.parse.urlencode({"state": "open", "per_page": 1})
+    url = f"{API_ROOT}/repos/{urllib.parse.quote(owner)}/{urllib.parse.quote(repository_name)}/pulls?{query}"
+    try:
+        payload, headers = github_request_with_headers(url, token)
+    except (RuntimeError, OSError):
+        return None
+    if not isinstance(payload, list):
+        return None
+    last_page = last_page_from_link(headers.get("link", ""))
+    return last_page if last_page is not None else len(payload)
 
 
 def parse_args() -> argparse.Namespace:
@@ -410,6 +432,17 @@ def main() -> None:
         str(repository.get("name") or ""): recent_release_at(args.owner, str(repository.get("name") or ""), token)
         for repository in repositories if not repository.get("fork")
     }
+    # GitHub 的 open_issues_count 包含 PR；单独读取开放 PR 后相减，才是页面应展示的开放 Issue。
+    open_pull_requests = {
+        str(repository.get("name") or ""): open_pull_request_count(args.owner, str(repository.get("name") or ""), token)
+        for repository in repositories
+    }
+    open_issues = {
+        str(repository.get("name") or ""): max(0, int(repository.get("open_issues_count") or 0) - pull_count)
+        if isinstance(pull_count, int) else None
+        for repository in repositories
+        if (pull_count := open_pull_requests.get(str(repository.get("name") or ""))) is not None
+    }
     starred_repositories, _ = filter_excluded_repositories(
         list_starred_repositories(args.owner, token),
         excluded,
@@ -421,6 +454,8 @@ def main() -> None:
         recent_commit_counts=recent_commit_counts,
         last_matched_commit_at=last_matched_commit_at,
         upstreams=upstreams,
+        open_issues=open_issues,
+        open_pull_requests=open_pull_requests,
         starred_repositories=starred_repositories,
         excluded_repositories=excluded_count,
         activity_window_days=activity_window_days,

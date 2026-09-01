@@ -128,7 +128,7 @@ async function initialize() {
 
 function cacheDom() {
   [
-    "searchInput", "categoryTree", "categoryCount", "tagCloud", "clearTags",
+    "searchInput", "clearSearch", "searchMeta", "categoryTree", "categoryCount", "tagCloud", "clearTags",
     "statusFilter", "linkFilter", "sortFilter", "filterSummary", "notesGrid",
     "emptyState", "emptyResetButton", "resultCount", "libraryHeading", "statTotal",
     "statPublished", "statUnchecked", "statCategories", "featuredButton", "dataModeText",
@@ -143,7 +143,7 @@ function cacheDom() {
     "exportButton", "importInput", "resetDraftButton", "toast",
     "projectGrid", "projectEmpty", "projectResultCount", "projectSyncText", "projectFreshness", "projectSpotlight",
     "pagesCarousel", "pagesCarouselTrack", "pagesCarouselDots", "carouselPrev", "carouselNext",
-    "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectCommitLabel", "projectCommitHint", "projectStarredCount", "commitScope",
+    "projectOwnedCount", "projectForkCount", "projectCommitCount", "projectCommitLabel", "projectCommitHint", "projectIssueCount", "projectPullRequestCount", "projectStarredCount", "commitScope",
     "projectMaintenanceFocus", "projectMaintenanceSummary", "projectMaintenanceList",
     "projectFilterTabs", "projectTabIndicator", "projectPanel",
     "projectRelationMap", "projectMapSearch", "projectMapScope", "projectMapFit",
@@ -167,8 +167,14 @@ function cacheDom() {
 function bindEvents() {
   dom.searchInput.addEventListener("input", (event) => {
     state.query = event.target.value.trim().toLocaleLowerCase("zh-CN");
-    renderLibrary();
-    renderProjects();
+    renderAll();
+  });
+  dom.clearSearch.addEventListener("click", () => {
+    if (!state.query) return;
+    state.query = "";
+    dom.searchInput.value = "";
+    renderAll();
+    dom.searchInput.focus();
   });
 
   document.querySelectorAll("[data-project-filter]").forEach((button) => {
@@ -405,6 +411,11 @@ function bindEvents() {
       event.preventDefault();
       dom.searchInput.focus();
     }
+    if (event.key === "Escape" && document.activeElement === dom.searchInput && state.query) {
+      state.query = "";
+      dom.searchInput.value = "";
+      renderAll();
+    }
     if (event.key === "Escape" && document.body.classList.contains("sidebar-open")) {
       closeSidebar({ restoreFocus: true });
     }
@@ -412,6 +423,7 @@ function bindEvents() {
 }
 
 function renderAll() {
+  renderSearchMeta();
   renderStats();
   renderSmartNav();
   renderQuickFilters();
@@ -422,6 +434,26 @@ function renderAll() {
   renderProjects();
   renderChangelog();
   renderDataMode();
+}
+
+function projectMatchesQuery(project, query = state.query) {
+  const haystack = [project?.name, project?.fullName, project?.description, project?.language, ...(project?.topics || [])]
+    .filter(Boolean).join(" ").toLocaleLowerCase("zh-CN");
+  return !query || haystack.includes(query);
+}
+
+function renderSearchMeta() {
+  if (!dom.searchMeta || !dom.clearSearch) return;
+  const query = state.query;
+  dom.clearSearch.hidden = !query;
+  if (!query) {
+    dom.searchMeta.textContent = "可搜索笔记、公开项目、标签与技术栈";
+    return;
+  }
+  const notes = state.notes.filter((note) => [note.title, note.summary, ...note.categoryPath, ...note.tags]
+    .join(" ").toLocaleLowerCase("zh-CN").includes(query)).length;
+  const projects = [...state.projects, ...state.starredProjects].filter((project) => projectMatchesQuery(project, query)).length;
+  dom.searchMeta.textContent = `“${query}” 命中 ${notes} 篇笔记、${projects} 个公开项目`;
 }
 
 function activateProjectFilter(filter) {
@@ -549,8 +581,14 @@ let pagesCarouselTimer = null;
 
 function renderPagesCarousel() {
   if (!dom.pagesCarousel) return;
-  const pages = (state.projects || []).filter((project) => !project.fork && project.hasPages);
-  const visible = pages.length > 0 && state.projectFilter !== "starred";
+  const pages = (state.projects || [])
+    .filter((project) => !project.fork && !project.archived && projectMatchesQuery(project))
+    .map((project) => ({ project, activity: getProjectMaintenanceState(project) }))
+    .sort((a, b) => b.activity.priorityScore - a.activity.priorityScore
+      || compareDateDesc(a.project.pushedAt || a.project.updatedAt, b.project.pushedAt || b.project.updatedAt))
+    .slice(0, 8)
+    .map(({ project }) => project);
+  const visible = pages.length > 0 && !["starred", "map"].includes(state.projectFilter);
   dom.pagesCarousel.hidden = !visible;
   if (!visible) {
     stopPagesCarousel();
@@ -561,13 +599,16 @@ function renderPagesCarousel() {
   dom.pagesCarouselTrack.innerHTML = pages.map((project, index) => {
     const repoUrl = safeHref(project.repoUrl);
     const pagesUrl = deriveProjectPagesUrl(project, state.projectPayload?.owner);
-    const badges = [project.language, project.fork ? "Fork" : "自建", ...(project.topics || []).slice(0, 2)]
+    const activity = getProjectMaintenanceState(project);
+    const recentCommits = Number.isInteger(project.recentCommitCount) ? `近 30 天 ${project.recentCommitCount} 次提交` : "近期提交未知";
+    const badges = [recentCommits, `Issue ${Number.isInteger(project.openIssues) ? project.openIssues : "—"}`, `PR ${Number.isInteger(project.openPullRequests) ? project.openPullRequests : "—"}`]
       .filter(Boolean).map((badge) => `<span>${escapeHtml(badge)}</span>`).join("");
     return `<article class="pages-carousel-card" style="--carousel-index:${index}" data-pages-index="${index}">
       <div class="pages-carousel-card-top"><span class="pages-carousel-card-mark" aria-hidden="true">⌘</span><code>${escapeHtml(project.fullName)}</code></div>
       <h3>${escapeHtml(project.name)}</h3>
       <p>${escapeHtml(project.description || "公开项目，详情见源码仓库。")}</p>
       <div class="pages-carousel-card-badges">${badges}</div>
+      <small class="pages-carousel-activity">${escapeHtml(activity.detail || `最近更新于 ${formatTimestampDate(project.pushedAt || project.updatedAt)}`)}</small>
       <div class="pages-carousel-card-actions">
         ${pagesUrl ? `<a class="pages-carousel-open" href="${escapeAttr(pagesUrl)}" target="_blank" rel="noopener noreferrer">打开网站 ↗</a>` : ""}
         ${repoUrl ? `<a href="${escapeAttr(`${repoUrl}#readme`)}" target="_blank" rel="noopener noreferrer">源码</a>` : ""}
@@ -668,6 +709,8 @@ function renderProjectProfileSummary() {
     dom.projectCommitLabel.textContent = hasRecentCommitTotal ? "近期提交" : "本人提交";
     dom.projectCommitHint.textContent = hasRecentCommitTotal ? `近 ${Number(state.projectPayload.activityWindowDays) || 30} 天匹配` : "默认分支匹配";
     dom.projectStarredCount.textContent = String(summary.starred ?? state.starredProjects.length);
+    dom.projectIssueCount.textContent = String(Number.isInteger(summary.openIssues) ? summary.openIssues : "—");
+    dom.projectPullRequestCount.textContent = String(Number.isInteger(summary.openPullRequests) ? summary.openPullRequests : "—");
     const activityWindowDays = Number(state.projectPayload.activityWindowDays) || 30;
     const commitScope = state.projectPayload.commitScope || "提交数按 GitHub 账号身份匹配每个公开仓库默认分支统计。";
     dom.commitScope.textContent = `${commitScope} 近期优先区按近 ${activityWindowDays} 天提交和最近推送自动计算。`;
@@ -776,6 +819,8 @@ function renderProjectCard(project, starred = false, index = 0) {
     ? [project.language, `${Number(project.stars) || 0} Stars`, "我的收藏"]
     : [project.language, project.hasPages ? "GitHub Pages" : "源码仓库", project.fork ? "Fork" : "自建"]).filter(Boolean);
   const commitCopy = starred ? `社区 ${Number(project.stars) || 0} Stars` : (Number.isInteger(project.commitCount) ? `本人 ${project.commitCount} 次提交` : "本人提交数未知");
+  const issueCopy = Number.isInteger(project.openIssues) ? `Issue ${project.openIssues}` : "Issue —";
+  const pullCopy = Number.isInteger(project.openPullRequests) ? `PR ${project.openPullRequests}` : "PR —";
   const upstream = project.upstream?.repoUrl ? `<span class="project-upstream">上游：<a href="${escapeAttr(safeHref(project.upstream.repoUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(project.upstream.fullName || "查看来源")}</a></span>` : "";
   const maintenanceLine = maintenance.level ? `<div class="project-maintenance-line is-${maintenance.level}"><span class="maintenance-dot" aria-hidden="true"></span><strong>${escapeHtml(maintenance.label)}</strong><small>${escapeHtml(maintenance.detail)}</small></div>` : "";
   return `<article class="project-card${maintenance.level ? ` is-maintenance-${maintenance.level}` : ""}" style="--project-card-index:${Math.min(index, 8)}">
@@ -787,7 +832,7 @@ function renderProjectCard(project, starred = false, index = 0) {
     <div class="project-badges">${badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}</div>
     ${upstream}
     <footer>
-      <div class="project-card-meta"><span>${escapeHtml(commitCopy)} · 更新 ${formatTimestampDate(project.updatedAt)}</span>
+      <div class="project-card-meta"><span>${escapeHtml(commitCopy)} · ${escapeHtml(issueCopy)} · ${escapeHtml(pullCopy)} · 更新 ${formatTimestampDate(project.updatedAt)}</span>
         <div class="project-card-links">
           ${repoUrl ? `<a href="${escapeAttr(`${repoUrl}#readme`)}" target="_blank" rel="noopener noreferrer">README</a>` : ""}
           ${repoUrl ? `<a href="${escapeAttr(repoUrl)}" target="_blank" rel="noopener noreferrer">源码</a>` : ""}

@@ -103,6 +103,26 @@ class GitHubProjectIndexTests(unittest.TestCase):
         self.assertEqual(count, 4)
         self.assertEqual(latest_commit_at, "2026-08-14T03:00:00Z")
 
+    def test_open_pull_requests_are_separate_from_open_issues(self) -> None:
+        repository = {
+            "id": 9,
+            "name": "activity-demo",
+            "full_name": "Starline/activity-demo",
+            "html_url": "https://github.com/Starline/activity-demo",
+            "open_issues_count": 7,
+            "fork": False,
+        }
+        payload = MODULE.build_payload(
+            [repository],
+            "Starline",
+            open_issues={"activity-demo": 5},
+            open_pull_requests={"activity-demo": 2},
+        )
+        self.assertEqual(payload["projects"][0]["openIssues"], 5)
+        self.assertEqual(payload["projects"][0]["openPullRequests"], 2)
+        self.assertEqual(payload["summary"]["openIssues"], 5)
+        self.assertEqual(payload["summary"]["openPullRequests"], 2)
+
     def test_hidden_repository_is_excluded_by_name_or_full_name(self) -> None:
         repositories = [
             {"name": "public-note", "full_name": "Starline/public-note"},

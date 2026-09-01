@@ -21,11 +21,15 @@
       </div>
     </div>
 
-    <label class="global-search" for="searchInput">
-      <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
-      <input id="searchInput" type="search" placeholder="搜索标题、摘要、标签…" autocomplete="off">
-      <kbd>/</kbd>
-    </label>
+    <div class="global-search-area">
+      <label class="global-search" for="searchInput">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+        <input id="searchInput" type="search" placeholder="搜索笔记、项目、标签或技术栈…" autocomplete="off" aria-describedby="searchMeta">
+        <button class="search-clear" id="clearSearch" type="button" aria-label="清空搜索" hidden>×</button>
+        <kbd>/</kbd>
+      </label>
+      <p class="search-meta" id="searchMeta" role="status" aria-live="polite">可搜索笔记与公开项目</p>
+    </div>
 
     <div class="top-actions">
       <button class="button button-quiet mobile-menu" id="openSidebar" type="button" aria-label="收起分类导航" aria-controls="sidebar" aria-expanded="true">
@@ -175,16 +179,16 @@
         <section class="pages-carousel" id="pagesCarousel" aria-labelledby="pagesCarouselTitle" hidden>
           <div class="pages-carousel-head">
             <div>
-              <span class="eyebrow">DEPLOYED PAGES / 已部署站点</span>
-              <h2 id="pagesCarouselTitle">我的在线作品集</h2>
+              <span class="eyebrow">RECENT ACTIVITY / 最近活动</span>
+              <h2 id="pagesCarouselTitle">近期活动项目</h2>
             </div>
             <div class="pages-carousel-controls" aria-label="轮播控制">
               <button class="carousel-arrow" id="carouselPrev" type="button" aria-label="上一个项目">←</button>
               <button class="carousel-arrow" id="carouselNext" type="button" aria-label="下一个项目">→</button>
             </div>
           </div>
-          <div class="pages-carousel-track" id="pagesCarouselTrack" tabindex="0" aria-label="可横向滑动的已部署站点列表"></div>
-          <div class="pages-carousel-dots" id="pagesCarouselDots" role="tablist" aria-label="站点指示点"></div>
+          <div class="pages-carousel-track" id="pagesCarouselTrack" tabindex="0" aria-label="可横向滑动的近期活动项目"></div>
+          <div class="pages-carousel-dots" id="pagesCarouselDots" role="tablist" aria-label="近期活动项目指示点"></div>
         </section>
 
         <section class="project-spotlight" id="projectSpotlight" aria-labelledby="projectSpotlightTitle" hidden></section>
@@ -193,6 +197,8 @@
           <article><span>自建项目</span><strong id="projectOwnedCount">0</strong><small>非 Fork 仓库</small></article>
           <article><span>Fork 项目</span><strong id="projectForkCount">0</strong><small>保留上游来源</small></article>
           <article><span id="projectCommitLabel">近期提交</span><strong id="projectCommitCount">0</strong><small id="projectCommitHint">近 30 天匹配</small></article>
+          <article><span>开放 Issues</span><strong id="projectIssueCount">0</strong><small>待跟进事项</small></article>
+          <article><span>开放 PR</span><strong id="projectPullRequestCount">0</strong><small>待合并变更</small></article>
           <article><span>我的 Star</span><strong id="projectStarredCount">0</strong><small>公开收藏</small></article>
         </div>
 
