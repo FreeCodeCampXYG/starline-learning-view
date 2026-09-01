@@ -147,7 +147,7 @@ function cacheDom() {
     "projectMaintenanceFocus", "projectMaintenanceSummary", "projectMaintenanceList",
     "projectFilterTabs", "projectTabIndicator", "projectPanel",
     "projectRelationMap", "projectMapSearch", "projectMapScope", "projectMapFit",
-    "projectMapReset", "projectMapGraph", "projectMapViewport", "projectMapEdges",
+    "projectMapReset", "projectMapGraph", "projectMapEffects", "projectMapViewport", "projectMapEdges",
     "projectMapNodes", "projectMapEmpty", "projectMapSummary", "projectMapStatus",
     "projectMapDetail", "projectMapVisibleCount", "projectMapNodeList",
     "knowledgeMap", "knowledgeMapSearch", "knowledgeMapScope", "knowledgeMapFit",

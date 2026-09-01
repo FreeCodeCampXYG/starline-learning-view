@@ -1594,6 +1594,15 @@ select {
   background-size: 18px 18px;
   touch-action: none;
 }
+.project-map-effects {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+#projectMapGraph { position: relative; z-index: 2; }
 
 #knowledgeMapGraph,
 #projectMapGraph { cursor: grab; user-select: none; }
@@ -1617,6 +1626,11 @@ select {
 .project-map-edge.explicit { marker-end: url(#projectMapArrow); }
 .knowledge-map-edge.derived,
 .project-map-edge.derived { stroke-dasharray: 2 3; }
+.project-map-edge.structural { opacity: .08; }
+.project-map-edge.structural.is-connected { opacity: .55; stroke-width: 1.8; }
+.project-map-edge:not(.structural) { opacity: .32; }
+.project-map-edge:not(.structural).is-connected,
+.project-map-edge.explicit { opacity: .88; }
 .knowledge-map-edge.search-related,
 .project-map-edge.search-related { stroke: var(--accent-ink); stroke-width: 2.4; }
 .knowledge-map-edge.search-context,

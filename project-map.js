@@ -18,7 +18,8 @@ const projectMapState = {
   pointer: null,
   scale: 1,
   tx: 0,
-  ty: 0
+  ty: 0,
+  effectsFrame: 0
 };
 
 function initializeProjectMapEvents() {
@@ -77,6 +78,8 @@ function renderProjectMap({ fit = false, reset = false } = {}) {
   renderProjectMapDetail();
   applyProjectMapTransform();
   updateProjectMapPositions();
+  updateProjectMapEdgeFocus();
+  startProjectMapEffects();
   if ((fit || query) && nodes.length) {
     window.requestAnimationFrame(() => {
       fitProjectMap();
@@ -257,6 +260,7 @@ function buildProjectMapSvg(nodes, edges) {
   edges.forEach((edge) => {
     const line = document.createElementNS(namespace, "line");
     line.classList.add("project-map-edge", edge.origin);
+    line.classList.toggle("structural", ["自建", "Fork", "Star"].includes(edge.label));
     line.dataset.edgeId = edge.id;
     const related = projectMapState.query && (projectMapState.matchIds.has(edge.source) || projectMapState.matchIds.has(edge.target));
     line.classList.toggle("search-related", Boolean(related));
@@ -354,6 +358,63 @@ function updateProjectMapPositions() {
   });
 }
 
+function updateProjectMapEdgeFocus() {
+  dom.projectMapEdges.querySelectorAll(".project-map-edge").forEach((line, index) => {
+    const edge = projectMapState.edges[index];
+    const connected = Boolean(projectMapState.selectedId) && (edge?.source === projectMapState.selectedId || edge?.target === projectMapState.selectedId);
+    line.classList.toggle("is-connected", connected);
+  });
+}
+
+function startProjectMapEffects() {
+  if (projectMapState.effectsFrame || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const canvas = dom.projectMapEffects;
+  if (!canvas) return;
+  const draw = (timestamp) => {
+    projectMapState.effectsFrame = 0;
+    if (dom.projectRelationMap.hidden) return;
+    drawProjectMapEffects(canvas, timestamp);
+    projectMapState.effectsFrame = requestAnimationFrame(draw);
+  };
+  projectMapState.effectsFrame = requestAnimationFrame(draw);
+}
+
+function drawProjectMapEffects(canvas, timestamp) {
+  const rect = canvas.getBoundingClientRect();
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  const width = Math.max(1, Math.round(rect.width * ratio));
+  const height = Math.max(1, Math.round(rect.height * ratio));
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+  const context = canvas.getContext("2d");
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  context.clearRect(0, 0, rect.width, rect.height);
+  const highlighted = projectMapState.edges.filter((edge) => edge.origin === "explicit" || (projectMapState.selectedId && (edge.source === projectMapState.selectedId || edge.target === projectMapState.selectedId)));
+  highlighted.forEach((edge, index) => {
+    const source = projectMapState.positions.get(edge.source);
+    const target = projectMapState.positions.get(edge.target);
+    if (!source || !target) return;
+    const from = projectMapCanvasPoint(source, rect);
+    const to = projectMapCanvasPoint(target, rect);
+    const progress = ((timestamp / 2600) + index * .31) % 1;
+    const x = from.x + (to.x - from.x) * progress;
+    const y = from.y + (to.y - from.y) * progress;
+    context.beginPath();
+    context.fillStyle = edge.origin === "explicit" ? "rgba(37, 99, 235, .95)" : "rgba(22, 163, 74, .86)";
+    context.arc(x, y, 3.2, 0, Math.PI * 2);
+    context.fill();
+  });
+}
+
+function projectMapCanvasPoint(point, rect) {
+  return {
+    x: ((point.x * projectMapState.scale) + projectMapState.tx) / 960 * rect.width,
+    y: ((point.y * projectMapState.scale) + projectMapState.ty) / 560 * rect.height
+  };
+}
+
 function beginProjectMapNodeDrag(event) {
   if (event.button !== 0) return;
   event.stopPropagation();
@@ -447,6 +508,7 @@ function selectProjectMapNode(id) {
   projectMapState.selectedId = id;
   dom.projectMapNodes.querySelectorAll(".project-map-node").forEach((node) => node.classList.toggle("selected", node.dataset.projectMapNodeId === id));
   dom.projectMapNodeList.querySelectorAll("[data-project-map-node-id]").forEach((button) => button.classList.toggle("is-active", button.dataset.projectMapNodeId === id));
+  updateProjectMapEdgeFocus();
   renderProjectMapDetail();
 }
 
