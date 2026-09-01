@@ -398,13 +398,40 @@ function drawProjectMapEffects(canvas, timestamp) {
     if (!source || !target) return;
     const from = projectMapCanvasPoint(source, rect);
     const to = projectMapCanvasPoint(target, rect);
-    const progress = ((timestamp / 2600) + index * .31) % 1;
-    const x = from.x + (to.x - from.x) * progress;
-    const y = from.y + (to.y - from.y) * progress;
+    const color = edge.origin === "explicit" ? "37, 99, 235" : "22, 163, 74";
+    // 同一关系使用错相粒子和短轨迹，形成连续循环而不是一次性闪烁。
+    for (let particle = 0; particle < 4; particle += 1) {
+      const progress = ((timestamp / 3000) + index * .17 + particle * .25) % 1;
+      const x = from.x + (to.x - from.x) * progress;
+      const y = from.y + (to.y - from.y) * progress;
+      const tail = Math.max(0, progress - .07);
+      const tailX = from.x + (to.x - from.x) * tail;
+      const tailY = from.y + (to.y - from.y) * tail;
+      context.beginPath();
+      context.moveTo(tailX, tailY);
+      context.lineTo(x, y);
+      context.strokeStyle = `rgba(${color}, .34)`;
+      context.lineWidth = 2;
+      context.stroke();
+      context.beginPath();
+      context.fillStyle = `rgba(${color}, .95)`;
+      context.shadowColor = `rgba(${color}, .7)`;
+      context.shadowBlur = 9;
+      context.arc(x, y, 3.4, 0, Math.PI * 2);
+      context.fill();
+      context.shadowBlur = 0;
+    }
+  });
+  projectMapState.nodes.filter((node) => ["account", "capability", "language"].includes(node.kind)).forEach((node, index) => {
+    const point = projectMapState.positions.get(node.id);
+    if (!point) return;
+    const center = projectMapCanvasPoint(point, rect);
+    const phase = (timestamp / 1400 + index * .23) % 1;
     context.beginPath();
-    context.fillStyle = edge.origin === "explicit" ? "rgba(37, 99, 235, .95)" : "rgba(22, 163, 74, .86)";
-    context.arc(x, y, 3.2, 0, Math.PI * 2);
-    context.fill();
+    context.arc(center.x, center.y, 20 + phase * 13, 0, Math.PI * 2);
+    context.strokeStyle = `rgba(37, 99, 235, ${(1 - phase) * .18})`;
+    context.lineWidth = 1.5;
+    context.stroke();
   });
 }
 
