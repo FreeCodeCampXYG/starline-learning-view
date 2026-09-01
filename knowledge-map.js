@@ -270,9 +270,9 @@ function buildKnowledgeMapSvg(nodes, edges) {
     shape.setAttribute("fill-opacity", "0.16");
     shape.setAttribute("stroke", nodeColor);
     shape.setAttribute("stroke-width", "1.7");
-    shape.style.fill = nodeColor;
-    shape.style.fillOpacity = "0.16";
-    shape.style.stroke = nodeColor;
+    shape.style.setProperty("fill", nodeColor, "important");
+    shape.style.setProperty("fill-opacity", "0.16", "important");
+    shape.style.setProperty("stroke", nodeColor, "important");
     const label = document.createElementNS(ns, "text");
     label.classList.add("knowledge-map-node-label");
     label.setAttribute("y", "34");
